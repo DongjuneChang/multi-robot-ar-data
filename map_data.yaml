@@ -8,6 +8,7 @@ map_info:
   last_modified: "2025-08-21T08:45:30"
   grid_size: 5  # 5x5 격자
   scale: 100    # 1m = 100 pixels in map view
+  coordinate_system: "ENU"  # East-North-Up (ROS2 표준)
 
 registered_qr_codes:
   Q1:
@@ -16,6 +17,10 @@ registered_qr_codes:
     registered_at: "2025-08-21T08:15:00"
     world_position: [0, 0, 0]  # 첫 QR이 원점 (x, y, z)
     map_position: [250, 250]   # 맵 중앙 (x, y pixels)
+    robot_type: "xarm5"
+    robot_base_offset:  # QR로부터 로봇 베이스까지 6D pose
+      position: [0.5, 0, 0.3]  # x, y, z (미터)
+      rotation: [0, 0, 0, 1]    # qx, qy, qz, qw
     
   Q2:
     id: "Q2"
@@ -23,6 +28,10 @@ registered_qr_codes:
     registered_at: "2025-08-21T08:20:00"
     world_position: [2.5, 0, 1.8]
     map_position: [500, 430]   # 맵에서의 2D 위치
+    robot_type: "iiwa14"
+    robot_base_offset:
+      position: [0.3, 0, 0.25]
+      rotation: [0, 0.707, 0, 0.707]  # 90도 회전
     
   Q3:
     id: "Q3"
@@ -30,6 +39,10 @@ registered_qr_codes:
     registered_at: "2025-08-21T08:25:00"
     world_position: [1.2, 0, 3.5]
     map_position: [370, 600]
+    robot_type: "ur5"
+    robot_base_offset:
+      position: [0.4, 0, 0.2]
+      rotation: [0, 0, 0, 1]
 
 registered_users:
   dongjune_chang:
@@ -38,6 +51,7 @@ registered_users:
     user_name: "Dongjune Chang"
     role: "admin"  # full permissions
     registered_qr: ["Q1", "Q2", "Q3"]  # 모든 QR 접근 가능
+    tracking_reference_qr: "Q1"  # 이 사용자의 트래킹 기준 QR
     last_qr_detected: "Q1"
     last_detection_time: "2025-08-21T08:45:00"
     last_camera_pose:  # QR 인식 시점의 카메라 위치
@@ -52,8 +66,8 @@ registered_users:
       admin_access: true
       
   hyunglae_lee:
-    device_id: "HoloLens_002"
-    device_ip: "192.168.1.102"
+    device_id: "HOLOLENS-G4NTC8"  # 두 번째 실제 HoloLens
+    device_ip: "192.168.10.128"
     user_name: "Hyunglae Lee"
     role: "professor"
     registered_qr: ["Q2"]
