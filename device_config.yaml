@@ -38,10 +38,10 @@ hololens_devices:
 
   # Hyunglae Lee 교수님의 HoloLens
   hyunglae_lee:
-    device_name: "HOLOLENS-XXXXXX"  # 실제 디바이스 이름으로 변경 필요
-    device_ip: "192.168.1.102"  # 실제 IP로 변경 필요
+    device_name: "HOLOLENS-G4NTC8"  # 실제 디바이스 이름
+    device_ip: "192.168.10.128"  # 실제 IP
     portal_enabled: true
-    portal_url: "https://192.168.1.102"
+    portal_url: "https://192.168.10.128"
     
     stream_settings:
       resolution: "1280x720"
