@@ -36,18 +36,6 @@ var gitHub = new GitHubUtility3_2("main");
 var mapData = await gitHub.DownloadAndParseJsonAsync<MapData>("map_data.yaml");
 ```
 
-## 📝 업데이트 방법
-
-1. 파일 수정 후 commit & push
-2. Unity/HoloLens 앱이 시작 시 자동으로 최신 버전 다운로드
-3. 로컬 캐시와 비교하여 변경사항만 적용
-
-## ⚠️ 주의사항
-
-- **비밀번호나 민감한 정보는 절대 commit하지 마세요**
-- 실시간 tracking_data.json은 이 레포에 포함하지 않음
-- Python 서버 코드는 별도 private 레포에서 관리
-
 ## 📅 Last Updated
 
 2025-08-21 by Dongjune Chang
