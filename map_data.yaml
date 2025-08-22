@@ -10,39 +10,72 @@ map_info:
   scale: 100    # 1m = 100 pixels in map view
   coordinate_system: "ENU"  # East-North-Up (ROS2 표준)
 
-registered_qr_codes:
+# 로봇용 QR 코드
+robot_qr_codes:
   Q1:
     id: "Q1"
-    registered_by: "dongjune_chang"
-    registered_at: "2025-08-21T08:15:00"
     world_position: [0, 0, 0]  # 첫 QR이 원점 (x, y, z)
     map_position: [250, 250]   # 맵 중앙 (x, y pixels)
     robot_type: "xarm5"
     robot_base_offset:  # QR로부터 로봇 베이스까지 6D pose
       position: [0.5, 0, 0.3]  # x, y, z (미터)
       rotation: [0, 0, 0, 1]    # qx, qy, qz, qw
+    robot_eef_offset:  # 로봇 베이스에서 End-Effector까지
+      position: [0.6, 0, 0.5]  # xArm5 EEF 위치
+      rotation: [0, 0, 0, 1]
+    work_frame_offset:  # 로봇 베이스에서 작업 프레임까지  
+      position: [0.8, 0, 0.1]  # 작업 테이블 위치
+      rotation: [0, 0, 0, 1]
     
   Q2:
     id: "Q2"
-    registered_by: "hyunglae_lee"
-    registered_at: "2025-08-21T08:20:00"
     world_position: [2.5, 0, 1.8]
     map_position: [500, 430]   # 맵에서의 2D 위치
     robot_type: "iiwa14"
     robot_base_offset:
       position: [0.3, 0, 0.25]
       rotation: [0, 0.707, 0, 0.707]  # 90도 회전
+    robot_eef_offset:  # IIWA14 EEF 위치
+      position: [0.8, 0, 0.8]  
+      rotation: [0, 0, 0, 1]
+    work_frame_offset:
+      position: [0.5, 0.3, 0.1]
+      rotation: [0, 0, 0, 1]
     
   Q3:
     id: "Q3"
-    registered_by: "youngsoo_park"
-    registered_at: "2025-08-21T08:25:00"
     world_position: [1.2, 0, 3.5]
     map_position: [370, 600]
     robot_type: "ur5"
     robot_base_offset:
       position: [0.4, 0, 0.2]
       rotation: [0, 0, 0, 1]
+    robot_eef_offset:  # UR5 EEF 위치
+      position: [0.85, 0, 0.6]
+      rotation: [0, 0, 0, 1]
+    work_frame_offset:
+      position: [0.7, -0.2, 0.05]
+      rotation: [0, 0, 0, 1]
+
+# 일반 QR 코드 (로봇 없음)
+general_qr_codes:
+  Q4:
+    id: "Q4"
+    world_position: [0.5, 0, 2.0]
+    map_position: [300, 500]
+    purpose: "calibration_marker"  # 캘리브레이션용
+    
+  Q5:
+    id: "Q5"
+    world_position: [3.0, 0, 1.0]
+    map_position: [550, 350]
+    purpose: "reference_point"  # 참조점
+    
+  Q6:
+    id: "Q6"
+    world_position: [1.5, 0, 4.0]
+    map_position: [400, 650]
+    purpose: "workspace_boundary"  # 작업 공간 경계
 
 registered_users:
   dongjune_chang:
@@ -51,7 +84,7 @@ registered_users:
     user_name: "Dongjune Chang"
     role: "admin"  # full permissions
     registered_qr: ["Q1", "Q2", "Q3"]  # 모든 QR 접근 가능
-    tracking_reference_qr: "Q1"  # 이 사용자의 트래킹 기준 QR
+    local_reference_world_qr: "Q1"  # 이 사용자의 로컬 월드 기준 QR (원점)
     last_qr_detected: "Q1"
     last_detection_time: "2025-08-21T08:45:00"
     last_camera_pose:  # QR 인식 시점의 카메라 위치
