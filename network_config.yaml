@@ -1,0 +1,68 @@
+# Network Configuration for Multi-HRI System
+# GitHub에서 관리되는 중앙 네트워크 설정
+# 작성일: 2025-08-28
+
+# ngrok 설정 (중앙 서버)
+app_server:
+  ngrok_domain: "multi-hri.ngrok.app"
+  flask_port: 5000
+  github_repo: "DongjuneChang/multi-robot-ar-data"
+  
+# ZMQ 포트 (Riley AI)
+riley_config:
+  publish_port: 5565    # Unity → Python
+  subscribe_port: 5566  # Python → Unity
+  wake_word: "Riley"
+  listening_duration: 5.0
+
+# 네트워크별 ROS 서버 매핑
+network_mappings:
+  # SEMTE Lab
+  - network_range: "10.200.84.0/24"
+    location: "SEMTE Lab"
+    ros_server: "10.200.84.141"
+    ros_port: 10000
+    riley_server: "10.200.84.100"  # Riley AI 서버 (있을 경우)
+    
+  # Home Network  
+  - network_range: "192.168.1.0/24"
+    location: "Home"
+    ros_server: "192.168.1.100"
+    ros_port: 10000
+    riley_server: "192.168.1.90"
+    
+  # Lab B
+  - network_range: "172.25.0.0/16"
+    location: "WSL2 Dev"
+    ros_server: "172.25.161.162"
+    ros_port: 10000
+    riley_server: "localhost"  # 같은 머신
+    
+  # Public/Unknown (fallback)
+  - network_range: "0.0.0.0/0"
+    location: "Public"
+    ros_server: null  # ROS 연결 없음
+    ros_port: null
+    riley_server: null  # ngrok만 사용
+
+# Photon Fusion2 설정
+photon_config:
+  app_id: "YOUR_PHOTON_APP_ID"  # 실제 App ID로 교체
+  region: "us"  # us, asia, eu 등
+  room_name: "MultiHRI-Room"
+  max_players: 10
+  
+# 디바이스별 오버라이드 (특수 케이스)
+device_overrides:
+  "HOLOLENS-EP9MKK":  # Dongjune Chang
+    preferred_ros: "10.200.84.141"
+      
+  "HOLOLENS-G4NTC8":  # Hyunglae Lee
+    preferred_ros: "10.200.84.141"
+
+# 타임아웃 설정
+timeouts:
+  ros_connection: 5.0
+  riley_connection: 3.0
+  ngrok_connection: 10.0
+  photon_connection: 15.0
