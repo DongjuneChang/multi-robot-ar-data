@@ -49,3 +49,14 @@ devices:
     owner: "youngsoo_park"
     device_ip: "192.168.1.103"  # 실제 IP로 변경 필요
     streaming_preset: "low"
+    
+  # Unity Editor / Desktop 테스트용
+  "UNITY_EDITOR":
+    owner: "developer"
+    device_ip: "127.0.0.1"  # 로컬 테스트
+    streaming_preset: "medium"
+    
+  "MSI":
+    owner: "dongjune_chang"
+    device_ip: "127.0.0.1"
+    streaming_preset: "high"

@@ -111,6 +111,17 @@ devices:
     riley_mode: "zmq_local"
     streaming_mode: "disabled"     # 스트리밍 안함
     
+  # Unity Editor / Desktop 테스트용
+  "MSI":  # Dongjune's Desktop
+    ros_server: "localhost"
+    riley_mode: "zmq_local"
+    streaming_mode: "zmq_local"
+    
+  "UNITY_EDITOR":  # Unity Editor 전용
+    ros_server: "localhost"
+    riley_mode: "zmq_local"
+    streaming_mode: "zmq_local"
+    
   # 기본값 (디바이스명 감지 실패시)
   default:
     ros_server: "localhost"
