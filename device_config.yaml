@@ -1,5 +1,5 @@
 # HoloLens 2 Device Configuration
-# 작성일: 2025-08-21
+# 작성일: 2025-08-30
 # 작성자: Dongjune Chang
 # 용도: HoloLens 2 디바이스 정보 및 Device Portal 접속 정보 관리
 
@@ -16,59 +16,7 @@ device_portal:
     device_info: "/api/os/info"
     battery_status: "/api/power/battery"
 
-# HoloLens 2 디바이스 목록
-hololens_devices:
-  # Dongjune Chang의 HoloLens
-  dongjune_chang:
-    device_name: "HOLOLENS-EP9MKK"  # 실제 디바이스 이름
-    device_ip: "192.168.10.108"  # 실제 IP
-    portal_enabled: true
-    portal_url: "https://192.168.10.108"  # 포트 없음 = 443 사용
-    
-    # 카메라 스트림 설정
-    stream_settings:
-      resolution: "1280x720"  # 720p
-      framerate: 30
-      bitrate: 5000000  # 5 Mbps
-      
-    # 사용자 정보
-    user_info:
-      name: "Dongjune Chang"
-      role: "admin"
-
-  # Hyunglae Lee 교수님의 HoloLens
-  hyunglae_lee:
-    device_name: "HOLOLENS-G4NTC8"  # 실제 디바이스 이름
-    device_ip: "192.168.10.128"  # 실제 IP
-    portal_enabled: true
-    portal_url: "https://192.168.10.128"
-    
-    stream_settings:
-      resolution: "1280x720"
-      framerate: 30
-      bitrate: 5000000
-      
-    user_info:
-      name: "Hyunglae Lee"
-      role: "professor"
-
-  # Youngsoo Park 박사님의 HoloLens
-  youngsoo_park:
-    device_name: "HOLOLENS-YYYYYY"  # 실제 디바이스 이름으로 변경 필요
-    device_ip: "192.168.1.103"  # 실제 IP로 변경 필요
-    portal_enabled: true
-    portal_url: "https://192.168.1.103"
-    
-    stream_settings:
-      resolution: "1280x720"
-      framerate: 30
-      bitrate: 5000000
-      
-    user_info:
-      name: "Youngsoo Park"
-      role: "researcher"
-
-# 스트리밍 품질 프리셋
+# 스트리밍 품질 프리셋 (Python MRC 프록시용)
 streaming_presets:
   high:
     resolution: "1920x1080"
@@ -84,3 +32,20 @@ streaming_presets:
     resolution: "640x480"
     framerate: 15
     bitrate: 2000000  # 2 Mbps
+
+# HoloLens 2 디바이스 목록 (간소화)
+devices:
+  "HOLOLENS-EP9MKK":
+    owner: "dongjune_chang"
+    device_ip: "192.168.10.108"  # Device Portal 접속용
+    streaming_preset: "medium"
+    
+  "HOLOLENS-G4NTC8":
+    owner: "hyunglae_lee"
+    device_ip: "192.168.10.128"  # Device Portal 접속용
+    streaming_preset: "medium"
+    
+  "HOLOLENS-YYYYYY":
+    owner: "youngsoo_park"
+    device_ip: "192.168.1.103"  # 실제 IP로 변경 필요
+    streaming_preset: "low"
