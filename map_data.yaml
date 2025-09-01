@@ -18,7 +18,7 @@ robot_qr_codes:
     map_position: [250, 250]
     robot_type: "xarm5"
     robot_base_offset:  # QR로부터 로봇 베이스까지 offset
-      position: [0.5, 0, 0.3]
+      position: [0.5, 0, 0.3]      # meter 단위
       rotation: [0, 0, 0, 1]
     
   Q2:
@@ -27,7 +27,7 @@ robot_qr_codes:
     map_position: [500, 430]
     robot_type: "iiwa14"
     robot_base_offset:
-      position: [0.3, 0, 0.25]
+      position: [0.3, 0, 0.25]    # meter 단위
       rotation: [0, 0.707, 0, 0.707]
     
   Q3:
@@ -36,7 +36,7 @@ robot_qr_codes:
     map_position: [370, 600]
     robot_type: "ur5"
     robot_base_offset:
-      position: [0.4, 0, 0.2]
+      position: [0.4, 0, 0.2]     # meter 단위
       rotation: [0, 0, 0, 1]
 
 # 일반 QR 코드 (로봇 없음)
