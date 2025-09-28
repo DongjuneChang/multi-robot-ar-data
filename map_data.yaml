@@ -1,0 +1,87 @@
+# Map Registration Data (Cleaned Version)
+# 작성일: 2025-08-29
+# 수정: 불필요한 필드 제거, 실제 데이터만 유지
+
+map_info:
+  version: "2.0"
+  created: "2025-08-29T16:00:00"
+  last_modified: "2025-08-29T16:00:00"
+  grid_size: 5
+  scale: 100
+  coordinate_system: "ENU"
+
+# 로봇용 QR 코드 (robot_base_offset만 유지)
+robot_qr_codes:
+  Q1:
+    id: "Q1"
+    world_position: [0, 0, 0]  # 첫 QR이 원점
+    map_position: [250, 250]
+    robot_type: "xarm5"
+    robot_base_offset:  # QR로부터 로봇 베이스까지 offset
+      position: [0.132, 0, 0.008]  # 132mm East, 0mm North, 8mm Up (ENU)
+      rotation: [0, 0, 1, 0]  # 180 degree rotation around Z-axis (ENU) - robot faces opposite to QR
+    
+  Q2:
+    id: "Q2"
+    world_position: [2.5, 0, 1.8]
+    map_position: [500, 430]
+    robot_type: "iiwa14"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]  # 132mm East, 0mm North, 8mm Up (ENU)
+      rotation: [0, 0, 1, 0]  # 180 degree rotation around Z-axis (ENU) - robot faces opposite to QR
+    
+  Q3:
+    id: "Q3"
+    world_position: [1.2, 0, 3.5]
+    map_position: [370, 600]
+    robot_type: "ur5"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]  # 132mm East, 0mm North, 8mm Up (ENU)
+      rotation: [0, 0, 1, 0]  # 180 degree rotation around Z-axis (ENU) - robot faces opposite to QR
+
+# 일반 QR 코드 (로봇 없음)
+general_qr_codes:
+  Q4:
+    id: "Q4"
+    world_position: [0.5, 0, 2.0]
+    map_position: [300, 500]
+    purpose: "calibration_marker"
+    
+  Q5:
+    id: "Q5"
+    world_position: [3.0, 0, 1.0]
+    map_position: [550, 350]
+    purpose: "reference_point"
+
+# 등록된 사용자
+registered_users:
+  dongjune_chang:
+    device_id: "HOLOLENS-EP9MKK"
+    device_ip: "192.168.10.108"
+    user_name: "Dongjune Chang"
+    role: "admin"
+    registered_qr: ["Q1", "Q2", "Q3"]  # 접근 가능한 QR
+    permissions:
+      can_spawn_robot: true
+      can_delete_robot: true
+      can_control_all: true
+      max_robots: 10
+      admin_access: true
+      
+  hyunglae_lee:
+    device_id: "HOLOLENS-G4NTC8"
+    device_ip: "192.168.10.128"
+    user_name: "Hyunglae Lee"
+    role: "professor"
+    registered_qr: ["Q2"]
+    permissions:
+      can_spawn_robot: true
+      can_delete_robot: true
+      can_control_all: false
+      max_robots: 5
+      admin_access: false
+
+# 동적으로 관리될 섹션 (런타임에 업데이트)
+active_sessions:
+  # 실제 SaveQR 데이터로 업데이트될 예정
+  # 형식: {session_id}: {qr_id, detected_by, position, rotation, timestamp}

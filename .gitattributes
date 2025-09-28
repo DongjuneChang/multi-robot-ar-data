@@ -1,0 +1,35 @@
+# 기본 설정: 모든 텍스트 파일에 대해 줄바꿈 자동 처리
+* text=auto
+
+# 소스 코드 파일
+*.py text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.csv text eol=lf
+
+# 바이너리 파일
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.npy binary
+*.pkl binary
+*.h5 binary
+*.model binary
+
+# 데이터 파일
+*.csv text eol=lf
+*.tsv text eol=lf
+*.dat text eol=lf
+
+# git 내부 파일
+.gitattributes text eol=lf
+.gitignore text eol=lf
+.mailmap text eol=lf

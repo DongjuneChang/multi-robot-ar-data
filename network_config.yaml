@@ -1,0 +1,140 @@
+# Network Configuration for Multi-HRI System
+# Unity & Python 공용
+# 작성일: 2025-08-30
+# 작성자: Dongjune Chang
+
+# === Management App 설정 ===
+app_server:
+  ngrok_domain: "multi-hri.ngrok.app"
+  flask_port: 5000
+  github_repo: "DongjuneChang/multi-robot-ar-data"
+  
+  # ngrok 실행 명령 (참고용)
+  # ngrok http 5000 --domain=multi-hri.ngrok.app
+  # 또는 ngrok start --config=ngrok_config.yml flask-app
+
+# === Riley AI/LLM 채널 ===
+riley_config:
+  wake_word: "Riley"
+  listening_duration: 5.0
+  
+  # 연결 모드별 설정
+  modes:
+    zmq_local:  # 로컬 ZMQ 연결 (WSL2)
+      type: "zmq"
+      host: "localhost"
+      publish_port: 5565    # Unity → Python (음성 명령)
+      subscribe_port: 5566  # Python → Unity (LLM 응답)
+      ollama_port: 11434
+      model: "llama3.2:1b"
+      
+    zmq_remote:  # 원격 ZMQ 연결 (ROS 서버와 같은 머신)
+      type: "zmq"
+      host: "10.200.84.141"
+      publish_port: 5565
+      subscribe_port: 5566
+      ollama_port: 11434
+      model: "llama3.2:3b"
+      
+    http_ngrok:  # ngrok HTTP API (GPU 서버)
+      type: "http"
+      endpoint: "https://riley.multi-hri.ngrok.app"
+      api_key: "optional_key"
+      model: "llama3.2:70b"
+
+# === 데이터 스트리밍 채널 ===
+streaming_config:
+  update_rate: 10  # Hz
+  data_types:
+    - user_pose      # 사용자 위치
+    - qr_update      # QR 감지 이벤트
+    - robot_spawn    # 로봇 스폰
+    
+  # 연결 모드별 설정
+  modes:
+    zmq_local:  # 로컬 스트리밍
+      type: "zmq"
+      host: "localhost"
+      publish_port: 5567    # Unity → Python
+      subscribe_port: 5568  # Python → Unity
+      
+    zmq_aggregator:  # 중앙 집계 서버
+      type: "zmq"
+      host: "stream.multi-hri.ngrok.app"
+      publish_port: 5567
+      subscribe_port: 5568
+      
+    websocket:  # WebSocket (미래 옵션)
+      type: "websocket"
+      endpoint: "wss://stream.multi-hri.ngrok.app"
+      
+    disabled:  # 스트리밍 비활성화
+      type: "none"
+
+# === Photon Fusion2 설정 ===
+photon_config:
+  app_id: "YOUR_PHOTON_APP_ID"  # 실제 App ID로 교체
+  region: "us"  # us, asia, eu 등
+  room_name: "MultiHRI-Room"
+  max_players: 10
+
+# === ROS2 설정 (Unity Robotics TCP Connector) ===
+ros_config:
+  # Unity ROSTCPConnector 설정
+  servers:
+    nchr_kuka:
+      host: "10.200.84.141"
+      port: 10000
+      
+    nchr_xarm5:
+      host: "192.168.1.100"
+      port: 10000
+
+    home:
+      host: "192.168.1.100"
+      port: 10000
+      
+    localhost:
+      host: "127.0.0.1"
+      port: 10000
+
+# === 디바이스별 설정 ===
+devices:
+  "HOLOLENS-EP9MKK":
+    ros_server: "nchr_xarm5"      # ros_config.servers 참조
+    riley_mode: "zmq_local"       # riley_config.modes 참조
+    streaming_mode: "zmq_local"   # streaming_config.modes 참조
+    
+  "HOLOLENS-G4NTC8":
+    ros_server: "nchr_xarm5"
+    riley_mode: "http_ngrok"      # GPU 서버 사용
+    streaming_mode: "zmq_aggregator"  # 중앙 집계
+    
+  "HOLOLENS-YYYYYY":
+    ros_server: "home"
+    riley_mode: "zmq_local"
+    streaming_mode: "disabled"     # 스트리밍 안함
+    
+  # Unity Editor / Desktop 테스트용
+  "MSI":  # Dongjune's Desktop
+    ros_server: "nchr_xarm5"
+    riley_mode: "zmq_local"
+    streaming_mode: "zmq_local"
+    
+  "UNITY_EDITOR":  # Unity Editor 전용
+    ros_server: "nchr_xarm5"  # Editor에서도 실제 ROS 서버 사용
+    riley_mode: "zmq_local"
+    streaming_mode: "zmq_local"
+    
+  # 기본값 (디바이스명 감지 실패시)
+  default:
+    ros_server: "localhost"
+    riley_mode: "zmq_local"
+    streaming_mode: "zmq_local"
+
+# === 타임아웃 설정 ===
+timeouts:
+  ros_connection: 5000
+  riley_connection: 3000
+  streaming_connection: 2000
+  photon_connection: 15000
