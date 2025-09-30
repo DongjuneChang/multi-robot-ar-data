@@ -108,37 +108,49 @@ devices:
     ros_server: "nchr_xarm5"      # ros_config.servers 참조
     riley_mode: "zmq_local"       # riley_config.modes 참조
     streaming_mode: "zmq_local"   # streaming_config.modes 참조
+    user_location: "on_site"      # on_site | remote
     
   "HOLOLENS-G4NTC8":
     ros_server: "nchr_xarm5"
     riley_mode: "http_ngrok"      # GPU 서버 사용
     streaming_mode: "zmq_aggregator"  # 중앙 집계
+    user_location: "remote"       # Remote viewer
     
   "HOLOLENS-OG5M61":
     ros_server: "chicago_home"
     riley_mode: "zmq_local"
     streaming_mode: "zmq_local"
+    user_location: "on_site"      # On-site at Chicago
     
   # Unity Editor / Desktop 테스트용
   "MSI":  # Dongjune's Desktop
     ros_server: "chicago_home"
     riley_mode: "zmq_local"
     streaming_mode: "zmq_local"
+    user_location: "remote"       # Desktop은 remote로 간주
     
   "UNITY_EDITOR":  # Unity Editor 전용
     ros_server: "chicago_home"  # Chicago home ROS 서버 사용
     riley_mode: "zmq_local"
     streaming_mode: "zmq_local"
+    user_location: "on_site"      # Editor는 on-site 테스트용
     
   # 기본값 (디바이스명 감지 실패시)
   default:
     ros_server: "localhost"
     riley_mode: "zmq_local"
     streaming_mode: "zmq_local"
+    user_location: "on_site"      # 기본은 on-site
 
 # === 타임아웃 설정 ===
 timeouts:
   ros_connection: 5000
   riley_connection: 3000
   streaming_connection: 2000
-  photon_connection: 15000
+
+# === Robot Visualization 설정 ===
+# NOTE: VirtualTwin display is now controlled by:
+# 1. UserLocation (on_site | remote) from device config above
+# 2. On-site users: Dialog on spawn + voice toggle ("Riley, Show/Hide Virtual Twin")
+# 3. Remote users: Always shown
+visualization: {}  # Placeholder (no settings needed)
