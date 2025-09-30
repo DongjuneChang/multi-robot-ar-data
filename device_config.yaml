@@ -45,10 +45,10 @@ devices:
     device_ip: "192.168.10.128"  # Device Portal 접속용
     streaming_preset: "medium"
     
-  "HOLOLENS-YYYYYY":
+  "HOLOLENS-OG5M61":
     owner: "youngsoo_park"
-    device_ip: "192.168.1.103"  # 실제 IP로 변경 필요
-    streaming_preset: "low"
+    device_ip: "172.14.1.8"
+    streaming_preset: "medium"
     
   # Unity Editor / Desktop 테스트용
   "UNITY_EDITOR":

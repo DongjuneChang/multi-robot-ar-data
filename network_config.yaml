@@ -94,6 +94,10 @@ ros_config:
       host: "192.168.1.100"
       port: 10000
       
+    chicago_home:
+      host: "172.14.1.7"
+      port: 10000
+      
     localhost:
       host: "127.0.0.1"
       port: 10000
@@ -110,19 +114,19 @@ devices:
     riley_mode: "http_ngrok"      # GPU 서버 사용
     streaming_mode: "zmq_aggregator"  # 중앙 집계
     
-  "HOLOLENS-YYYYYY":
-    ros_server: "home"
+  "HOLOLENS-OG5M61":
+    ros_server: "chicago_home"
     riley_mode: "zmq_local"
-    streaming_mode: "disabled"     # 스트리밍 안함
+    streaming_mode: "zmq_local"
     
   # Unity Editor / Desktop 테스트용
   "MSI":  # Dongjune's Desktop
-    ros_server: "nchr_xarm5"
+    ros_server: "chicago_home"
     riley_mode: "zmq_local"
     streaming_mode: "zmq_local"
     
   "UNITY_EDITOR":  # Unity Editor 전용
-    ros_server: "nchr_xarm5"  # Editor에서도 실제 ROS 서버 사용
+    ros_server: "chicago_home"  # Chicago home ROS 서버 사용
     riley_mode: "zmq_local"
     streaming_mode: "zmq_local"
     
