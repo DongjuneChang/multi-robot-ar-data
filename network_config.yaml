@@ -95,7 +95,7 @@ ros_config:
       port: 10000
       
     chicago_home:
-      host: "172.14.1.13"
+      host: "172.14.1.22"
       port: 10000
       
     localhost:
