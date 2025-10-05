@@ -1,0 +1,58 @@
+# xARM5 Robot TF Mapping Configuration
+model: "xarm5"
+description: "xARM5 robot TF frame mapping for Unity NetworkTF"
+
+ros2:
+  # ROS2 namespace (빈 문자열 = root namespace)
+  namespace: ""
+  
+  # ROS2에서 구독할 TF 프레임 목록
+  subscribe_frames:
+    - "world"
+    - "link_base"
+    - "link1"
+    - "link2"
+    - "link3"
+    - "link4"
+    - "link5"
+    - "link_tcp"
+    - "link_eef"
+    - "WorkFrame"
+  
+  # ROS TF → NetworkTF 이름 매핑
+  # {robot_id}는 실행 시 치환됨 (예: xarm5_Q1)
+  frame_mapping:
+    world: "{robot_id}_base"
+    link_base: "{robot_id}_base"
+    link1: "{robot_id}_link1"
+    link2: "{robot_id}_link2"
+    link3: "{robot_id}_link3"
+    link4: "{robot_id}_link4"
+    link5: "{robot_id}_link5"
+    link_tcp: "{robot_id}_tcp"
+    link_eef: "{robot_id}_eef"
+    WorkFrame: "{robot_id}_WorkFrame"
+  
+  # Joint 이름 (선택적 - 미래 확장용)
+  joint_names:
+    - "joint1"
+    - "joint2"
+    - "joint3"
+    - "joint4"
+    - "joint5"
+    - "joint6"
+    - "joint7"
+
+# Visual Type별 TF 표시 설정 (선택적)
+visualization:
+  VirtualTwin:
+    show_all_frames: true  # 모든 TF axes 표시
+    highlight_frames:      # 강조 표시할 프레임
+      - "link_eef"
+      - "WorkFrame"
+  
+  VirtualGuide:
+    show_all_frames: false  # 일부만 표시
+    visible_frames:
+      - "link_eef"
+      - "WorkFrame"
