@@ -56,3 +56,6 @@ visualization:
     visible_frames:
       - "link_eef"
       - "WorkFrame"
+
+
+
