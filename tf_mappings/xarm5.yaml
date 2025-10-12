@@ -5,7 +5,7 @@ description: "xARM5 robot TF frame mapping for Unity NetworkTF"
 ros2:
   # ROS2 namespace (빈 문자열 = root namespace)
   namespace: ""
-  
+
   # ROS2에서 구독할 TF 프레임 목록
   subscribe_frames:
     - "world"
@@ -18,20 +18,33 @@ ros2:
     - "link_tcp"
     - "link_eef"
     - "WorkFrame"
-  
+
+  # ROS2 TF 경로 (parent/child 형식)
+  # Unity TFVisualizationManager에서 조회할 때 사용
+  tf_paths:
+    WorkFrame: "world/WorkFrame"  # 필수: 로봇 작업 영역 (target pose 계산용)
+    # Home: "world/Home"  # 미래 확장: 홈 포지션
+    # robot_origin: "world/robot_origin"  # 미래 확장: 로봇 원점
+    # WorkIK: "world/WorkIK"  # 미래 확장: IK 계산용
+    # EndEffectorOrientation_xArm5: "world/EndEffectorOrientation_xArm5"  # 미래 확장: EE 방향
+    # link_eef: "link5/link_eef"  # 미래 확장: End-effector
+    # link_base: "world/link_base"  # 미래 확장: 로봇 베이스
+
   # ROS TF → NetworkTF 이름 매핑
-  # {robot_id}는 실행 시 치환됨 (예: xarm5_Q1)
+  # TFMappingManager.MapToNetworkTF()에서 사용
+  # {robot_id}는 실행 시 치환됨 (예: robot_id="xarm5_Q1" → "xarm5_Q1_base")
+  # 용도: ROS2 TF를 Photon Fusion NetworkTF GameObject로 생성할 때 이름 변환
   frame_mapping:
-    world: "{robot_id}_base"
-    link_base: "{robot_id}_base"
-    link1: "{robot_id}_link1"
+    world: "{robot_id}_base"         # world → xarm5_Q1_base
+    link_base: "{robot_id}_base"     # link_base → xarm5_Q1_base
+    link1: "{robot_id}_link1"        # link1 → xarm5_Q1_link1
     link2: "{robot_id}_link2"
     link3: "{robot_id}_link3"
     link4: "{robot_id}_link4"
     link5: "{robot_id}_link5"
     link_tcp: "{robot_id}_tcp"
     link_eef: "{robot_id}_eef"
-    WorkFrame: "{robot_id}_WorkFrame"
+    WorkFrame: "{robot_id}_WorkFrame"  # WorkFrame → xarm5_Q1_WorkFrame
   
   # Joint 이름 (선택적 - 미래 확장용)
   joint_names:
@@ -40,8 +53,6 @@ ros2:
     - "joint3"
     - "joint4"
     - "joint5"
-    - "joint6"
-    - "joint7"
 
 # Visual Type별 TF 표시 설정 (선택적)
 visualization:
