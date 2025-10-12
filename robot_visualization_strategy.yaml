@@ -1,0 +1,17 @@
+# Robot Visualization Strategy Configuration
+# Created: 2025-01-12
+# Purpose: Multi-robot visualization strategy for HoloLens AR
+
+visualization_strategy:
+  # User location별 생성할 visualization types
+  remote:
+    types: [VirtualTwin, VirtualGuide]
+    default_visibility:
+      VirtualTwin: true
+      VirtualGuide: true
+
+  on_site:
+    types: [Physical, VirtualGuide]
+    default_visibility:
+      Physical: true
+      VirtualGuide: true
