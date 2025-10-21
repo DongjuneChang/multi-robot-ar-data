@@ -7,44 +7,58 @@ ros2:
   namespace: ""
 
   # ROS2에서 구독할 TF 프레임 목록
+  # Unity에서 실제로 사용하는 프레임만 포함
   subscribe_frames:
-    - "world"
-    - "link_base"
-    - "link1"
-    - "link2"
-    - "link3"
-    - "link4"
-    - "link5"
-    - "link_tcp"
-    - "link_eef"
-    - "WorkFrame"
+    # 필수 프레임 - 로봇 구조 (실제 사용하는 것만)
+    - "world"  # 월드 기준점
+    - "link_base"  # 로봇 베이스
+    - "link_eef"  # End-effector
+
+    # 필수 프레임 - 작업 영역
+    - "WorkFrame"  # ⚠️ 필수: 로봇 작업 영역 (target pose 계산용)
+
+    # 제거된 프레임 - Unity에서 실제로 사용하지 않음 (로그 스팸 원인)
+    # - "link1"  # Joint 1 - 제거됨
+    # - "link2"  # Joint 2 - 제거됨  
+    # - "link3"  # Joint 3 - 제거됨
+    # - "link4"  # Joint 4 - 제거됨
+    # - "link5"  # Joint 5 - 제거됨
+
+    # 선택적 프레임 - 미래 확장용 (현재 Unity에서 사용하지 않음)
+    # - "link_tcp"  # Tool center point
+    # - "robot_origin"  # FK zero config 위치
+    # - "Home"  # 홈 포지션
+    # - "WorkIK"  # IK 계산용
+    # - "EndEffectorOrientation_xArm5"  # EE 기본 방향
 
   # ROS2 TF 경로 (parent/child 형식)
   # Unity TFVisualizationManager에서 조회할 때 사용
+  # ⚠️ named_frames_v2.yaml의 계층 구조를 따름
+  # ⚠️ Unity에서 실제로 참조하는 프레임만 포함
   tf_paths:
-    WorkFrame: "world/WorkFrame"  # 필수: 로봇 작업 영역 (target pose 계산용)
-    # Home: "world/Home"  # 미래 확장: 홈 포지션
-    # robot_origin: "world/robot_origin"  # 미래 확장: 로봇 원점
-    # WorkIK: "world/WorkIK"  # 미래 확장: IK 계산용
-    # EndEffectorOrientation_xArm5: "world/EndEffectorOrientation_xArm5"  # 미래 확장: EE 방향
-    # link_eef: "link5/link_eef"  # 미래 확장: End-effector
-    # link_base: "world/link_base"  # 미래 확장: 로봇 베이스
+    # WorkFrame만 Unity에서 직접 참조함 (나머지는 ROS2가 자동 처리)
+    WorkFrame: "robot_origin/WorkFrame"  # 필수: 로봇 작업 영역 (target pose 계산용)
 
   # ROS TF → NetworkTF 이름 매핑
   # TFMappingManager.MapToNetworkTF()에서 사용
   # {robot_id}는 실행 시 치환됨 (예: robot_id="xarm5_Q1" → "xarm5_Q1_base")
   # 용도: ROS2 TF를 Photon Fusion NetworkTF GameObject로 생성할 때 이름 변환
+  # ⚠️ Unity에서 NetworkTF로 생성할 프레임만 포함
   frame_mapping:
+    # 로봇 구조 프레임 (실제 사용하는 것만)
     world: "{robot_id}_base"         # world → xarm5_Q1_base
-    link_base: "{robot_id}_base"     # link_base → xarm5_Q1_base
-    link1: "{robot_id}_link1"        # link1 → xarm5_Q1_link1
-    link2: "{robot_id}_link2"
-    link3: "{robot_id}_link3"
-    link4: "{robot_id}_link4"
-    link5: "{robot_id}_link5"
-    link_tcp: "{robot_id}_tcp"
-    link_eef: "{robot_id}_eef"
-    WorkFrame: "{robot_id}_WorkFrame"  # WorkFrame → xarm5_Q1_WorkFrame
+    link_base: "{robot_id}_base"     # link_base → xarm5_Q1_base (동일)
+    link_eef: "{robot_id}_eef"       # link_eef → xarm5_Q1_eef
+
+    # 작업 영역 프레임
+    WorkFrame: "{robot_id}_WorkFrame"  # WorkFrame → xarm5_Q1_WorkFrame (필수)
+
+    # 제거된 프레임 - Unity에서 실제로 사용하지 않음 (로그 스팸 원인)
+    # link1: "{robot_id}_link1"        # 제거됨
+    # link2: "{robot_id}_link2"        # 제거됨
+    # link3: "{robot_id}_link3"        # 제거됨
+    # link4: "{robot_id}_link4"        # 제거됨
+    # link5: "{robot_id}_link5"        # 제거됨
   
   # Joint 이름 (선택적 - 미래 확장용)
   joint_names:
