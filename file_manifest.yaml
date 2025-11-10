@@ -26,39 +26,12 @@ file_manifest:
       required: true
       robot_model: "xarm5"
       description: "xArm5 robot TF mappings and network config"
-      
-    - path: "network_robots/iiwa14.yaml"
-      type: "NetworkRobotData"
-      required: true
-      robot_model: "iiwa14"
-      description: "KUKA iiwa14 robot TF mappings and network config"
-      
-    - path: "network_robots/ur5.yaml"
-      type: "NetworkRobotData"
-      required: true
-      robot_model: "ur5"
-      description: "Universal Robots UR5 TF mappings and network config"
 
   policy_configs:
     - path: "policies/robot_visualization_strategy.yaml"
       type: "VisualizationStrategyData"
       required: true
       description: "Robot visualization strategies and policies"
-      
-    - path: "policies/safety_policy.yaml"
-      type: "SafetyPolicyData"
-      required: true
-      description: "Robot safety constraints and limits"
-      
-    - path: "policies/interaction_policy.yaml"
-      type: "InteractionPolicyData"
-      required: true
-      description: "Human-robot interaction policies"
-      
-    - path: "policies/security_policy.yaml"
-      type: "SecurityPolicyData"
-      required: false
-      description: "Access control and security settings"
 
 # 메타데이터
 metadata:
