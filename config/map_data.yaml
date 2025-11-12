@@ -80,6 +80,32 @@ registered_users:
       can_control_all: false
       max_robots: 5
       admin_access: false
+      
+  youngsoo_park:
+    device_id: "HOLOLENS-OG5M61"
+    device_ip: "172.14.1.8"
+    user_name: "Youngsoo Park"
+    role: "user"
+    registered_qr: ["Q1", "Q2", "Q3"]
+    permissions:
+      can_spawn_robot: true
+      can_delete_robot: false
+      can_control_all: false
+      max_robots: 3
+      admin_access: false
+      
+  developer:
+    device_id: "UNITY_EDITOR"
+    device_ip: "127.0.0.1"
+    user_name: "Developer"
+    role: "developer"
+    registered_qr: ["Q1", "Q2", "Q3"]
+    permissions:
+      can_spawn_robot: true
+      can_delete_robot: true
+      can_control_all: true
+      max_robots: 5
+      admin_access: true
 
 # 동적으로 관리될 섹션 (런타임에 업데이트)
 active_sessions:
