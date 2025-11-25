@@ -131,3 +131,4 @@
 - [x] file_manifest.yaml 등록 확인
 - [x] Unity 로드 경로 확인
 
+

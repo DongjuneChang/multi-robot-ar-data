@@ -100,6 +100,7 @@ ros2:
       joint4: [-360, 360]
       joint5: [-360, 360]
       joint6: [-360, 360]
+    home: [0, 35, 60, 0, 25, -20]  # Home joint positions (degrees)
 
 # 시각화는 ScriptableObject로 처리
 visualization_config: "lite6_visualization"
