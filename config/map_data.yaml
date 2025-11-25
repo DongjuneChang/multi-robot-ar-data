@@ -34,21 +34,112 @@ robot_qr_codes:
     id: "Q3"
     world_position: [1.2, 0, 3.5]
     map_position: [370, 600]
-    robot_type: "ur5"
+    robot_type: "ur5e"
     robot_base_offset:
       position: [0.132, 0, 0.008]  # 132mm East, 0mm North, 8mm Up (ENU)
       rotation: [0, 0, 1, 0]  # 180 degree rotation around Z-axis (ENU) - robot faces opposite to QR
-
-# 일반 QR 코드 (로봇 없음)
-general_qr_codes:
+    
   Q4:
     id: "Q4"
     world_position: [0.5, 0, 2.0]
     map_position: [300, 500]
-    purpose: "calibration_marker"
+    robot_type: "lite6"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]  # 132mm East, 0mm North, 8mm Up (ENU)
+      rotation: [0, 0, 1, 0]  # 180 degree rotation around Z-axis (ENU) - robot faces opposite to QR
     
   Q5:
     id: "Q5"
+    world_position: [1.5, 0, 2.5]
+    map_position: [400, 550]
+    robot_type: "ur3e"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]  # 132mm East, 0mm North, 8mm Up (ENU)
+      rotation: [0, 0, 1, 0]  # 180 degree rotation around Z-axis (ENU) - robot faces opposite to QR
+    
+  Q6:
+    id: "Q6"
+    world_position: [2.0, 0, 2.0]
+    map_position: [450, 500]
+    robot_type: "fr3"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]  # 132mm East, 0mm North, 8mm Up (ENU)
+      rotation: [0, 0, 1, 0]  # 180 degree rotation around Z-axis (ENU) - robot faces opposite to QR
+    
+  Q7:
+    id: "Q7"
+    world_position: [2.5, 0, 2.5]
+    map_position: [500, 550]
+    robot_type: "ur16e"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]  # 132mm East, 0mm North, 8mm Up (ENU)
+      rotation: [0, 0, 1, 0]  # 180 degree rotation around Z-axis (ENU) - robot faces opposite to QR
+    
+  Q8:
+    id: "Q8"
+    world_position: [3.0, 0, 2.0]
+    map_position: [550, 500]
+    robot_type: "iiwa7"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]  # 132mm East, 0mm North, 8mm Up (ENU)
+      rotation: [0, 0, 1, 0]  # 180 degree rotation around Z-axis (ENU) - robot faces opposite to QR
+    
+  Q9:
+    id: "Q9"
+    world_position: [3.5, 0, 2.5]
+    map_position: [600, 550]
+    robot_type: "med14"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]  # 132mm East, 0mm North, 8mm Up (ENU)
+      rotation: [0, 0, 1, 0]  # 180 degree rotation around Z-axis (ENU) - robot faces opposite to QR
+    
+  Q10:
+    id: "Q10"
+    world_position: [4.0, 0, 2.0]
+    map_position: [650, 500]
+    robot_type: "med7"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]  # 132mm East, 0mm North, 8mm Up (ENU)
+      rotation: [0, 0, 1, 0]  # 180 degree rotation around Z-axis (ENU) - robot faces opposite to QR
+    
+  Q11:
+    id: "Q11"
+    world_position: [4.5, 0, 2.5]
+    map_position: [700, 550]
+    robot_type: "kinova_gen3_7dof"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]  # 132mm East, 0mm North, 8mm Up (ENU)
+      rotation: [0, 0, 1, 0]  # 180 degree rotation around Z-axis (ENU) - robot faces opposite to QR
+    
+  # 양팔 로봇 (QR 50번대) - 양팔 로봇 이름은 추후 결정
+  # Q50:
+  #   id: "Q50"
+  #   world_position: [5.0, 0, 3.0]
+  #   map_position: [750, 600]
+  #   robot_type: "fr3_dual"  # 양팔 로봇 이름 (예시)
+  #   robot_base_offset:
+  #     position: [0.132, 0, 0.008]
+  #     rotation: [0, 0, 1, 0]
+  #   
+  # Q51:
+  #   id: "Q51"
+  #   world_position: [5.5, 0, 3.0]
+  #   map_position: [800, 600]
+  #   robot_type: "kinova_gen3_7dof_dual"  # 양팔 로봇 이름 (예시)
+  #   robot_base_offset:
+  #     position: [0.132, 0, 0.008]
+  #     rotation: [0, 0, 1, 0]
+
+# 일반 QR 코드 (로봇 없음)
+general_qr_codes:
+  Q101:
+    id: "Q101"
+    world_position: [0.5, 0, 2.0]
+    map_position: [300, 500]
+    purpose: "calibration_marker"
+    
+  Q102:
+    id: "Q102"
     world_position: [3.0, 0, 1.0]
     map_position: [550, 350]
     purpose: "reference_point"
@@ -60,7 +151,7 @@ registered_users:
     device_ip: "192.168.10.108"
     user_name: "Dongjune Chang"
     role: "admin"
-    registered_qr: ["Q1", "Q2", "Q3"]  # 접근 가능한 QR
+    registered_qr: ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q8", "Q9", "Q10", "Q11"]  # 접근 가능한 QR
     permissions:
       can_spawn_robot: true
       can_delete_robot: true
@@ -73,7 +164,7 @@ registered_users:
     device_ip: "192.168.10.128"
     user_name: "Hyunglae Lee"
     role: "professor"
-    registered_qr: ["Q2"]
+    registered_qr: ["Q2", "Q4", "Q8", "Q9", "Q10"]
     permissions:
       can_spawn_robot: true
       can_delete_robot: true
@@ -86,7 +177,7 @@ registered_users:
     device_ip: "172.14.1.8"
     user_name: "Youngsoo Park"
     role: "user"
-    registered_qr: ["Q1", "Q2", "Q3"]
+    registered_qr: ["Q1", "Q2", "Q3", "Q4"]
     permissions:
       can_spawn_robot: true
       can_delete_robot: false
@@ -99,7 +190,7 @@ registered_users:
     device_ip: "127.0.0.1"
     user_name: "Developer"
     role: "developer"
-    registered_qr: ["Q1", "Q2", "Q3"]
+    registered_qr: ["Q1", "Q2", "Q3", "Q4"]
     permissions:
       can_spawn_robot: true
       can_delete_robot: true

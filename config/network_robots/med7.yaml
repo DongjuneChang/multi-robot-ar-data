@@ -1,0 +1,128 @@
+# MED7 Network Robot Configuration
+# ICoordinateFrame-based hierarchy structure
+
+robot:
+  model: "med7"
+  manufacturer: "KUKA"
+  id_pattern: "{model}_{anchor}"  # med7_Q1
+
+# Coordinate Frame Hierarchy (ICoordinateFrame 중심)
+frame_hierarchy:
+  # QR Frame 설정
+  qr_frame_pattern: "QR_{anchor}"  # QR_Q1, QR_Q2 등
+
+  # Robot 자체가 ICoordinateFrame (root)
+  root_frame:
+    type: "NetworkTF"           # NetworkTF로 통일 (ICoordinateFrame 구현)
+    id: "{robot_id}"            # med7_Q1
+    parent: "QR_{anchor}"       # QR_Q1
+
+  # 자식 NetworkTF 프레임들
+  network_frames:
+    "{robot_id}_base":
+      ros_frame: "med7_link_0"
+      parent: "{robot_id}"      # Robot이 부모
+      type: "NetworkTF"
+
+    "{robot_id}_eef":
+      ros_frame: "med7_link_ee"
+      parent: "{robot_id}_base"
+      type: "NetworkTF"
+
+    "{robot_id}_work":
+      ros_frame: "WorkFrame"
+      parent: "{robot_id}_base"
+      type: "NetworkTF"
+      critical: true            # Pose 계산 필수
+
+  # ROS2 전용 프레임 (ICoordinateFrame 아님, 시각화만)
+  local_frames:
+    - "med7_link_1"             # Joint 1
+    - "med7_link_2"             # Joint 2
+    - "med7_link_3"             # Joint 3
+    - "med7_link_4"             # Joint 4
+    - "med7_link_5"             # Joint 5
+    - "med7_link_6"             # Joint 6
+    - "med7_link_7"             # Joint 7
+
+# ROS2 Settings
+ros2:
+  namespace: ""                 # Root namespace
+
+  # ROS2 Topics
+  topics:
+    tf: "/tf"                   # Dynamic transforms
+    tf_static: "/tf_static"     # Static transforms (URDF structure)
+    joint_states: "/joint_states"
+
+  # Prefab GameObject 매핑 (Prefab 내부의 실제 GameObject 이름)
+  prefab_links:
+    med7_link_0: "Base"         # Prefab의 Base GameObject
+    med7_link_ee: "EndEffector" # Prefab의 EndEffector GameObject
+    med7_link_1: "Link1"
+    med7_link_2: "Link2"
+    med7_link_3: "Link3"
+    med7_link_4: "Link4"
+    med7_link_5: "Link5"
+    med7_link_6: "Link6"
+    med7_link_7: "Link7"
+
+  # ROS2에서 받아올 외부 프레임 (Prefab에 없는 것들)
+  external_frames:
+    WorkFrame:
+      parent: "med7_link_0"
+      topic: "/tf_static"       # WorkFrame은 tf_static으로 한번 발행
+      critical: true            # 필수 프레임
+
+    robot_origin:
+      parent: "world"
+      topic: "/tf"
+
+  # 구독할 모든 프레임 (호환성 유지)
+  subscribe_frames:
+    - "world"
+    - "robot_origin"
+    - "med7_link_0"
+    - "med7_link_ee"
+    - "WorkFrame"
+    - "med7_link_1"
+    - "med7_link_2"
+    - "med7_link_3"
+    - "med7_link_4"
+    - "med7_link_5"
+    - "med7_link_6"
+    - "med7_link_7"
+
+  # Joint 정보 (FK/IK 계산용)
+  joints:
+    names: ["med7_A1", "med7_A2", "med7_A3", "med7_A4", "med7_A5", "med7_A6", "med7_A7"]
+    limits:                     # degrees (MED7 specific limits)
+      med7_A1: [-170, 170]
+      med7_A2: [-120, 120]
+      med7_A3: [-170, 170]
+      med7_A4: [-120, 120]
+      med7_A5: [-170, 170]
+      med7_A6: [-120, 120]
+      med7_A7: [-175, 175]
+
+# 시각화는 ScriptableObject로 처리
+visualization_config: "med7_visualization"
+
+# ROS2 시각화 설정 (robot_visualization_config.yaml에서 가져옴)
+ros2_visualization:
+  reference_frame: "med7_link_0"  # 로봇별 참조 프레임 (world 대신 사용)
+  features:
+    show_current_pose: true
+    show_target_pose: true
+    show_path: true
+  markers:
+    sphere_scale: 0.05
+    text_scale: 0.03
+    path_line_width: 0.02
+  colors:
+    current: [1.0, 0.0, 0.0, 1.0]  # 빨간색 (현재 위치)
+    target: [0.0, 0.0, 1.0, 1.0]   # 파란색 (타겟 포즈)
+    path: [0.0, 1.0, 0.0, 0.8]     # 녹색 (경로)
+    success: [0.0, 1.0, 0.0, 0.6]  # 녹색 (도달 완료)
+    text: [1.0, 1.0, 1.0, 1.0]     # 흰색 (텍스트)
+

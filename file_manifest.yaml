@@ -27,6 +27,60 @@ file_manifest:
       robot_model: "xarm5"
       description: "xArm5 robot TF mappings and network config"
 
+    - path: "network_robots/lite6.yaml"
+      type: "NetworkRobotData"
+      required: true
+      robot_model: "lite6"
+      description: "Lite6 robot TF mappings and network config"
+
+    - path: "network_robots/ur3e.yaml"
+      type: "NetworkRobotData"
+      required: true
+      robot_model: "ur3e"
+      description: "UR3e robot TF mappings and network config"
+
+    - path: "network_robots/ur5e.yaml"
+      type: "NetworkRobotData"
+      required: true
+      robot_model: "ur5e"
+      description: "UR5e robot TF mappings and network config"
+
+    - path: "network_robots/ur16e.yaml"
+      type: "NetworkRobotData"
+      required: true
+      robot_model: "ur16e"
+      description: "UR16e robot TF mappings and network config"
+
+    - path: "network_robots/fr3.yaml"
+      type: "NetworkRobotData"
+      required: true
+      robot_model: "fr3"
+      description: "FR3 (Franka Research 3) robot TF mappings and network config"
+
+    - path: "network_robots/kinova_gen3_7dof.yaml"
+      type: "NetworkRobotData"
+      required: true
+      robot_model: "kinova_gen3_7dof"
+      description: "Kinova Gen3 7DOF robot TF mappings and network config"
+
+    - path: "network_robots/iiwa7.yaml"
+      type: "NetworkRobotData"
+      required: true
+      robot_model: "iiwa7"
+      description: "IIWA7 robot TF mappings and network config"
+
+    - path: "network_robots/med14.yaml"
+      type: "NetworkRobotData"
+      required: true
+      robot_model: "med14"
+      description: "MED14 robot TF mappings and network config"
+
+    - path: "network_robots/med7.yaml"
+      type: "NetworkRobotData"
+      required: true
+      robot_model: "med7"
+      description: "MED7 robot TF mappings and network config"
+
   policy_configs:
     - path: "policies/robot_visualization_strategy.yaml"
       type: "VisualizationStrategyData"
