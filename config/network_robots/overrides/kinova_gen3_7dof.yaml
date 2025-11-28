@@ -5,6 +5,7 @@ robot:
   model: "kinova_gen3_7dof"
   manufacturer: "Kinova"
   dof: 7
+  prefab_name: "kinova_gen3_7dof"
 
 joints:
   names: ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6", "joint_7"]

@@ -5,6 +5,7 @@ robot:
   model: "xarm5"
   manufacturer: "UFACTORY"
   dof: 5
+  prefab_name: "xarm5_1305"
 
 joints:
   names: ["joint1", "joint2", "joint3", "joint4", "joint5"]

@@ -5,6 +5,7 @@ robot:
   model: "iiwa14"
   manufacturer: "KUKA"
   dof: 7
+  prefab_name: "iiwa14"
 
 joints:
   names: ["iiwa14_A1", "iiwa14_A2", "iiwa14_A3", "iiwa14_A4", "iiwa14_A5", "iiwa14_A6", "iiwa14_A7"]

@@ -19,6 +19,7 @@ robot:
   manufacturer: ""                # OVERRIDE: "UFACTORY", "Universal Robots", etc.
   dof: 0                          # OVERRIDE: 5, 6, 7
   id_pattern: "{model}_{anchor}"
+  prefab_name: ""                 # OVERRIDE REQUIRED: Unity prefab name in Resources/Robots/
 
 # =============================================================================
 # Joint Configuration (OVERRIDE REQUIRED)

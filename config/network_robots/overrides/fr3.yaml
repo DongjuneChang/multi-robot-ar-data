@@ -5,6 +5,7 @@ robot:
   model: "fr3"
   manufacturer: "Franka Emika"
   dof: 7
+  prefab_name: "fr3"
 
 joints:
   names: ["fr3_joint1", "fr3_joint2", "fr3_joint3", "fr3_joint4", "fr3_joint5", "fr3_joint6", "fr3_joint7"]

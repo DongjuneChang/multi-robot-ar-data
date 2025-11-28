@@ -5,6 +5,7 @@ robot:
   model: "med7"
   manufacturer: "KUKA"
   dof: 7
+  prefab_name: "med7"
 
 joints:
   names: ["med7_A1", "med7_A2", "med7_A3", "med7_A4", "med7_A5", "med7_A6", "med7_A7"]

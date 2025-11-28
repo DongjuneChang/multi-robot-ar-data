@@ -5,6 +5,7 @@ robot:
   model: "lite6"
   manufacturer: "UFACTORY"
   dof: 6
+  prefab_name: "lite6"
 
 joints:
   names: ["joint1", "joint2", "joint3", "joint4", "joint5", "joint6"]
