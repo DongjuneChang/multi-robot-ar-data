@@ -9,8 +9,9 @@ robot:
 
 joints:
   names: ["joint1", "joint2", "joint3", "joint4", "joint5", "joint6"]
-  zero: [0, 0, 0, 0, 0, 0]
-  home: [0, 35, 60, 0, 25, -20]
+  positions:
+    zero: [0, 0, 0, 0, 0, 0]
+    home: [0, 35, 60, 0, 25, -20]
   limits:
     joint1: [-360, 360]
     joint2: [-118, 120]
@@ -64,7 +65,7 @@ ros2:
 named_frames:
   frames:
     robot_origin:
-      position: [0.247, 0.0, 0.080]  # FK at zero config
+      position: [0.087, 0.0, 0.154]  # FK at zero config (PyBullet verified)
     WorkFrame:
       position: [0.10, 0.0, 0.12]    # 10cm forward, 12cm up
 

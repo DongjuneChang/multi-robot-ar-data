@@ -9,8 +9,9 @@ robot:
 
 joints:
   names: ["fr3_joint1", "fr3_joint2", "fr3_joint3", "fr3_joint4", "fr3_joint5", "fr3_joint6", "fr3_joint7"]
-  zero: [0, 0, 0, 0, 0, 0, 0]
-  home: [0, -45, 0, -135, 0, 90, 45]
+  positions:
+    zero: [0, 0, 0, 0, 0, 0, 0]
+    home: [0, -45, 0, -135, 0, 90, 45]
   limits:
     fr3_joint1: [-166, 166]
     fr3_joint2: [-101, 101]

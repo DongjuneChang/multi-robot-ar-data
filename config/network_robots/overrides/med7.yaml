@@ -9,8 +9,9 @@ robot:
 
 joints:
   names: ["med7_A1", "med7_A2", "med7_A3", "med7_A4", "med7_A5", "med7_A6", "med7_A7"]
-  zero: [0, 0, 0, 0, 0, 0, 0]
-  home: [0, 0, 0, -90, 0, 90, 0]
+  positions:
+    zero: [0, 0, 0, 0, 0, 0, 0]
+    home: [0, 0, 0, -90, 0, 90, 0]
   limits:
     med7_A1: [-170, 170]
     med7_A2: [-120, 120]

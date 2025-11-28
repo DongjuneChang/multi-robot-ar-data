@@ -26,8 +26,9 @@ robot:
 # =============================================================================
 joints:
   names: []                       # OVERRIDE: ["joint1", "joint2", ...]
-  zero: []                        # OVERRIDE: [0, 0, 0, ...]
-  home: []                        # OVERRIDE: [0, -45, 0, ...]
+  positions:                      # Named joint positions in DEGREES
+    zero: []                      # OVERRIDE: [0, 0, 0, ...]
+    home: []                      # OVERRIDE: [0, -45, 0, ...]
   limits: {}                      # OVERRIDE: {joint1: [-360, 360], ...}
 
 # =============================================================================

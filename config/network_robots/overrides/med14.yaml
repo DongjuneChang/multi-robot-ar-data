@@ -9,8 +9,9 @@ robot:
 
 joints:
   names: ["med14_A1", "med14_A2", "med14_A3", "med14_A4", "med14_A5", "med14_A6", "med14_A7"]
-  zero: [0, 0, 0, 0, 0, 0, 0]
-  home: [0, 0, 0, -90, 0, 90, 0]
+  positions:
+    zero: [0, 0, 0, 0, 0, 0, 0]
+    home: [0, 0, 0, -90, 0, 90, 0]
   limits:
     med14_A1: [-170, 170]
     med14_A2: [-120, 120]
@@ -68,7 +69,7 @@ ros2:
 named_frames:
   frames:
     robot_origin:
-      position: [0.0, 0.0, 1.306]  # FK at zero config
+      position: [0.0, 0.0, 1.305]  # FK at zero config (PyBullet verified)
     WorkFrame:
       position: [0.25, 0.0, 0.15]
 

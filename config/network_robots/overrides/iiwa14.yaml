@@ -9,8 +9,9 @@ robot:
 
 joints:
   names: ["iiwa14_A1", "iiwa14_A2", "iiwa14_A3", "iiwa14_A4", "iiwa14_A5", "iiwa14_A6", "iiwa14_A7"]
-  zero: [0, 0, 0, 0, 0, 0, 0]
-  home: [0, 0, 0, -90, 0, 90, 0]
+  positions:
+    zero: [0, 0, 0, 0, 0, 0, 0]
+    home: [0, 0, 0, -90, 0, 90, 0]
   limits:
     iiwa14_A1: [-170, 170]
     iiwa14_A2: [-120, 120]
