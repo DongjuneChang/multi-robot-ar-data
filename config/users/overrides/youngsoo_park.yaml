@@ -1,0 +1,44 @@
+# Youngsoo Park User Configuration
+# ANL Researcher
+extends: "_defaults.yaml"
+
+user_name: "Youngsoo Park"
+role: "researcher"
+show_in_html: true
+
+# === 디바이스 설정 ===
+device_id: "HOLOLENS-OG5M61"
+device_ip: "172.14.1.8"
+
+# === 서버 연결 설정 (ANL) ===
+server:
+  ros_server: "anl"
+  ros_host: "172.14.1.100"  # ANL ROS 서버 IP
+  ros_port: 10000
+
+# === 연결 모드 ===
+streaming_mode: "zmq_local"
+
+# === RILEY AI 설정 ===
+riley:
+  mode: "zmq_local"
+  personas:
+    - basic
+
+# === 권한 설정 ===
+permissions:
+  can_spawn_robot: true
+  can_delete_robot: false
+  max_robots: 4
+
+  can_spawn_virtual: true
+  can_spawn_guide: false
+
+  can_remote_manipulation: false
+  can_control_all: false
+
+  admin_access: false
+
+# === 접근 가능 QR/로봇 (ANL 로봇) ===
+# lite6(Q4), ur3e(Q5), ur5e(Q3), ur16e(Q7)
+accessible_qr: ["Q3", "Q4", "Q5", "Q7"]

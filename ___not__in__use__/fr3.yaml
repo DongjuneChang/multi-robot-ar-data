@@ -1,0 +1,131 @@
+# FR3 (Franka Research 3) Network Robot Configuration
+# ICoordinateFrame-based hierarchy structure
+
+robot:
+  model: "fr3"
+  manufacturer: "Franka Emika"
+  id_pattern: "{model}_{anchor}"  # fr3_Q1
+
+# Coordinate Frame Hierarchy (ICoordinateFrame 중심)
+frame_hierarchy:
+  # QR Frame 설정
+  qr_frame_pattern: "QR_{anchor}"  # QR_Q1, QR_Q2 등
+
+  # Robot 자체가 ICoordinateFrame (root)
+  root_frame:
+    type: "NetworkTF"           # NetworkTF로 통일 (ICoordinateFrame 구현)
+    id: "{robot_id}"            # fr3_Q1
+    parent: "QR_{anchor}"       # QR_Q1
+
+  # 자식 NetworkTF 프레임들
+  network_frames:
+    "{robot_id}_base":
+      ros_frame: "fr3_link0"
+      parent: "{robot_id}"      # Robot이 부모
+      type: "NetworkTF"
+
+    "{robot_id}_eef":
+      ros_frame: "fr3_link8"
+      parent: "{robot_id}_base"
+      type: "NetworkTF"
+
+    "{robot_id}_work":
+      ros_frame: "WorkFrame"
+      parent: "{robot_id}_base"
+      type: "NetworkTF"
+      critical: true            # Pose 계산 필수
+
+  # ROS2 전용 프레임 (ICoordinateFrame 아님, 시각화만)
+  local_frames:
+    - "fr3_link1"               # Joint 1
+    - "fr3_link2"               # Joint 2
+    - "fr3_link3"               # Joint 3
+    - "fr3_link4"               # Joint 4
+    - "fr3_link5"               # Joint 5
+    - "fr3_link6"               # Joint 6
+    - "fr3_link7"               # Joint 7
+
+# ROS2 Settings
+ros2:
+  namespace: ""                 # Root namespace
+
+  # ROS2 Topics
+  topics:
+    tf: "/tf"                   # Dynamic transforms
+    tf_static: "/tf_static"     # Static transforms (URDF structure)
+    joint_states: "/joint_states"
+
+  # Prefab GameObject 매핑 (Prefab 내부의 실제 GameObject 이름)
+  prefab_links:
+    fr3_link0: "Base"           # Prefab의 Base GameObject
+    fr3_link8: "EndEffector"    # Prefab의 EndEffector GameObject
+    fr3_link1: "Link1"
+    fr3_link2: "Link2"
+    fr3_link3: "Link3"
+    fr3_link4: "Link4"
+    fr3_link5: "Link5"
+    fr3_link6: "Link6"
+    fr3_link7: "Link7"
+
+  # ROS2에서 받아올 외부 프레임 (Prefab에 없는 것들)
+  external_frames:
+    WorkFrame:
+      parent: "fr3_link0"
+      topic: "/tf_static"       # WorkFrame은 tf_static으로 한번 발행
+      critical: true            # 필수 프레임
+
+    robot_origin:
+      parent: "world"
+      topic: "/tf"
+
+  # 구독할 모든 프레임 (호환성 유지)
+  subscribe_frames:
+    - "world"
+    - "robot_origin"
+    - "fr3_link0"
+    - "fr3_link8"
+    - "WorkFrame"
+    - "fr3_link1"
+    - "fr3_link2"
+    - "fr3_link3"
+    - "fr3_link4"
+    - "fr3_link5"
+    - "fr3_link6"
+    - "fr3_link7"
+
+  # Joint 정보 (FK/IK 계산용)
+  joints:
+    names: ["fr3_joint1", "fr3_joint2", "fr3_joint3", "fr3_joint4", "fr3_joint5", "fr3_joint6", "fr3_joint7"]
+    limits:                     # degrees (FR3 specific limits - radians to degrees approximate)
+      fr3_joint1: [-157, 157]
+      fr3_joint2: [-102, 102]
+      fr3_joint3: [-166, 166]
+      fr3_joint4: [-174, -9]
+      fr3_joint5: [-166, 166]
+      fr3_joint6: [-166, 166]
+      fr3_joint7: [-166, 166]
+
+# 시각화는 ScriptableObject로 처리
+visualization_config: "fr3_visualization"
+
+# ROS2 시각화 설정 (robot_visualization_config.yaml에서 가져옴)
+ros2_visualization:
+  reference_frame: "fr3_link0"  # 로봇별 참조 프레임 (world 대신 사용)
+  features:
+    show_current_pose: true
+    show_target_pose: true
+    show_path: true
+  markers:
+    sphere_scale: 0.05
+    text_scale: 0.03
+    path_line_width: 0.02
+  colors:
+    current: [1.0, 0.0, 0.0, 1.0]  # 빨간색 (현재 위치)
+    target: [0.0, 0.0, 1.0, 1.0]   # 파란색 (타겟 포즈)
+    path: [0.0, 1.0, 0.0, 0.8]     # 녹색 (경로)
+    success: [0.0, 1.0, 0.0, 0.6]  # 녹색 (도달 완료)
+    text: [1.0, 1.0, 1.0, 1.0]     # 흰색 (텍스트)
+
+
+
+

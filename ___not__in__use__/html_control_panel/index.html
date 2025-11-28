@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Robot Control Panel v4.5.3</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #1a1a1a;
+            --bg-medium: #2a2a2a;
+            --bg-light: #3a3a3a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --border-color: #444;
+        }
+
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-medium);
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 16px;
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+
+        .header-status {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Navigation */
+        .nav-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 200px;
+            background: var(--bg-medium);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            background: var(--bg-light);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: var(--bg-light);
+            color: var(--text-primary);
+            border-left: 3px solid var(--text-primary);
+        }
+
+        .nav-section {
+            padding: 8px 16px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: var(--bg-dark);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-frame {
+            flex: 1;
+            border: none;
+            background: var(--bg-dark);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--bg-medium);
+            padding: 8px 20px;
+            border-top: 1px solid var(--border-color);
+            font-size: 11px;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>MULTI-ROBOT CONTROL PANEL v4.5.3</h1>
+        <div class="header-status">
+            <span id="current-panel">Robot Control</span>
+        </div>
+    </header>
+
+    <div class="nav-container">
+        <nav class="sidebar">
+            <div class="nav-section">System</div>
+            <div class="nav-item active" data-panel="robot_control/index.html">Robot Control</div>
+
+            <div class="nav-section">Tools</div>
+            <div class="nav-item" data-panel="tool_path/index.html">Tool Path</div>
+            <div class="nav-item" data-panel="admittance/index.html">Admittance Controller</div>
+
+            <div class="nav-section">AI</div>
+            <div class="nav-item" data-panel="ai_system/index.html">AI System</div>
+
+            <div class="nav-section">Management</div>
+            <div class="nav-item" data-panel="management/index.html">Management</div>
+        </nav>
+
+        <main class="main-content">
+            <iframe id="panel-frame" class="panel-frame" src="robot_control/index.html"></iframe>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <span>Connected to: <span id="server-url">-</span></span>
+        <span>Last Update: <span id="last-update">-</span></span>
+    </footer>
+
+    <script>
+        // Navigation handling
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // Update active state
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+
+                // Load panel
+                const panelUrl = this.dataset.panel;
+                const frame = document.getElementById('panel-frame');
+                frame.src = panelUrl;
+
+                // Update header
+                document.getElementById('current-panel').textContent = this.textContent;
+            });
+        });
+
+        // Update timestamp
+        function updateTimestamp() {
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+        }
+        setInterval(updateTimestamp, 1000);
+        updateTimestamp();
+
+        // Detect server
+        document.getElementById('server-url').textContent =
+            window.location.hostname + ':' + (window.location.port || '5000');
+    </script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+# Dongjune Chang User Configuration
+# Admin - 모든 환경에서 전체 권한
+extends: "_defaults.yaml"
+
+user_name: "Dongjune Chang"
+role: "admin"
+show_in_html: true
+
+# === 디바이스 설정 ===
+device_id: "HOLOLENS-EP9MKK"
+device_ip: "192.168.10.108"
+
+# === 서버 연결 설정 ===
+server:
+  ros_server: "chicago_home"  # 기본값, 이동 시 변경 가능
+  ros_host: "192.168.1.4"
+  ros_port: 10000
+
+# === 연결 모드 ===
+streaming_mode: "zmq_local"
+
+# === RILEY AI 설정 ===
+riley:
+  mode: "zmq_local"
+  personas:
+    - basic
+    - robot_expert
+    - safety_expert
+
+# === 권한 설정 (Admin 전체 권한) ===
+permissions:
+  can_spawn_robot: true
+  can_delete_robot: true
+  max_robots: 10
+
+  can_spawn_virtual: true
+  can_spawn_guide: true
+
+  can_remote_manipulation: true
+  can_control_all: true
+
+  admin_access: true
+
+# === 접근 가능 QR/로봇 ===
+accessible_qr: "all"

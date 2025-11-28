@@ -1,0 +1,23 @@
+# UR16e Robot Override
+# 기준: ur_moveit_config ur_moveit.launch.py ur_type:=ur16e
+
+robot:
+  type: "ur16e"
+  group_name: "ur_manipulator"
+  moveit_package: "ur_moveit_config"
+
+# UR은 namespace 지원
+ros2:
+  namespace: ""
+
+# UR은 launch 파일 형식이 다름 (ur_type 파라미터 사용)
+commands:
+  moveit_fake:
+    description: "Launch UR MoveIt in fake mode"
+    template: "ros2 launch ur_moveit_config ur_moveit.launch.py ur_type:={robot.type}"
+    defaults: {}
+
+  moveit_real:
+    description: "Launch UR MoveIt for real robot"
+    template: "ros2 launch ur_moveit_config ur_moveit.launch.py ur_type:={robot.type}"
+    defaults: {}

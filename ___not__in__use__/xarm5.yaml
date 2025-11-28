@@ -1,0 +1,240 @@
+# xArm5 Robot Configuration v2
+# Unified config: Unity + ROS2 + HTML
+# Single Source of Truth for all xArm5 settings
+#
+# =============================================================================
+# UNIT CONVENTIONS
+# =============================================================================
+# - Joint angles in this file: DEGREES (human-readable)
+# - Unity: Uses degrees directly
+# - ROS2:  Must convert to RADIANS at runtime (degrees * pi / 180)
+# - Positions: METERS
+# - Orientations: Quaternion [x, y, z, w]
+# =============================================================================
+
+# =============================================================================
+# Robot Basic Info
+# =============================================================================
+robot:
+  model: "xarm5"
+  manufacturer: "UFACTORY"
+  dof: 5
+  id_pattern: "{model}_{anchor}"  # xarm5_Q1
+
+# =============================================================================
+# Joint Configuration
+# NOTE: All angles in DEGREES (Single Source of Truth)
+#       ROS2 FrameManager converts to radians: value * pi / 180
+# =============================================================================
+joints:
+  names: ["joint1", "joint2", "joint3", "joint4", "joint5"]
+  zero: [0, 0, 0, 0, 0]               # Zero configuration (deg)
+  home: [0, 0, 0, 0, 0]               # Home position (deg) - xarm5 home = zero
+  limits:
+    joint1: [-360, 360]
+    joint2: [-118, 120]
+    joint3: [-225, 11]
+    joint4: [-360, 360]
+    joint5: [-360, 360]
+
+# =============================================================================
+# Unity Frame Hierarchy (ICoordinateFrame / NetworkTF)
+# =============================================================================
+frame_hierarchy:
+  qr_frame_pattern: "QR_{anchor}"
+
+  root_frame:
+    type: "NetworkTF"
+    id: "{robot_id}"
+    parent: "QR_{anchor}"
+
+  network_frames:
+    "{robot_id}_base":
+      ros_frame: "link_base"
+      parent: "{robot_id}"
+      type: "NetworkTF"
+
+    "{robot_id}_eef":
+      ros_frame: "link_eef"
+      parent: "{robot_id}_base"
+      type: "NetworkTF"
+
+    "{robot_id}_work":
+      ros_frame: "WorkFrame"
+      parent: "{robot_id}_base"
+      type: "NetworkTF"
+      critical: true
+
+  local_frames:
+    - "link1"
+    - "link2"
+    - "link3"
+    - "link4"
+    - "link5"
+
+# =============================================================================
+# ROS2 Communication Settings
+# =============================================================================
+ros2:
+  namespace: ""
+
+  topics:
+    tf: "/tf"
+    tf_static: "/tf_static"
+    joint_states: "/joint_states"
+
+  prefab_links:
+    link_base: "Base"
+    link_eef: "EndEffector"
+    link1: "Link1"
+    link2: "Link2"
+    link3: "Link3"
+    link4: "Link4"
+    link5: "Link5"
+
+  external_frames:
+    WorkFrame:
+      parent: "link_base"
+      topic: "/tf_static"
+      critical: true
+    robot_origin:
+      parent: "world"
+      topic: "/tf"
+
+  subscribe_frames:
+    - "world"
+    - "robot_origin"
+    - "link_base"
+    - "link_eef"
+    - "WorkFrame"
+    - "link1"
+    - "link2"
+    - "link3"
+    - "link4"
+    - "link5"
+
+# =============================================================================
+# ROS2 Named Frames (for FrameManager)
+# All positions relative to parent frame
+# joint_angles reference: joints.home (converted to radians at runtime)
+# =============================================================================
+named_frames:
+  version: "2.0"
+  coordinate_system: "ROS2"
+
+  frames:
+    world:
+      parent: null
+      position: [0.0, 0.0, 0.0]
+      orientation: [0.0, 0.0, 0.0, 1.0]
+      description: "World origin"
+
+    link_base:
+      parent: "world"
+      position: [0.0, 0.0, 0.0]
+      orientation: [0.0, 0.0, 0.0, 1.0]
+      description: "Robot base link"
+
+    robot_origin:
+      parent: "link_base"
+      position: [0.207, 0.0, 0.112]       # FK at zero config
+      orientation: [0.0, 0.0, 0.0, 1.0]
+      use_joint_angles: true
+      joint_angles_ref: "joints.zero"     # Reference to joints.zero
+      description: "Zero configuration (all joints = 0)"
+
+    Home:
+      parent: "robot_origin"
+      position: [0.0, 0.0, 0.0]
+      orientation: [0.0, 0.0, 0.0, 1.0]
+      use_joint_angles: true
+      joint_angles_ref: "joints.home"     # Reference to joints.home
+      description: "Home position (xarm5 home = zero)"
+
+    WorkFrame:
+      parent: "robot_origin"
+      position: [0.143, 0.0, 0.15]        # 14.3cm forward, 15cm up
+      orientation: [0.0, 0.0, 1.0, 0.0]   # 180° Z rotation (faces robot)
+      coordinate_system: "ENU"
+      description: "ENU input frame"
+
+    WorkIK:
+      parent: "Home"
+      position: [0.0, 0.0, 0.0]
+      orientation: [0.0, 0.0, 0.0, 1.0]
+      description: "IK calculation frame"
+
+    EndEffectorOrientation:
+      parent: "WorkIK"
+      position: [0.0, 0.0, 0.0]
+      orientation: [1.0, 0.0, 0.0, 0.0]   # 180° X rotation (flange down)
+      description: "End-effector default orientation"
+
+# =============================================================================
+# Visualization Settings
+# =============================================================================
+visualization_config: "xarm5_visualization"
+
+ros2_visualization:
+  reference_frame: "link_base"
+  features:
+    show_current_pose: true
+    show_target_pose: true
+    show_path: true
+  markers:
+    sphere_scale: 0.05
+    text_scale: 0.03
+    path_line_width: 0.02
+  colors:
+    current: [1.0, 0.0, 0.0, 1.0]
+    target: [0.0, 0.0, 1.0, 1.0]
+    path: [0.0, 1.0, 0.0, 0.8]
+    success: [0.0, 1.0, 0.0, 0.6]
+    text: [1.0, 1.0, 1.0, 1.0]
+
+# =============================================================================
+# Admittance Controller Configuration
+# Reference: docs/admittance_control_theory_2025-11-26.md
+#
+# Equation: x_ddot = M^-1 * (F_ext - B*x_dot + Kp*(x_eq - x) + Kd*(x_dot_eq - x_dot))
+# =============================================================================
+admittance:
+  dynamics:
+    # Mass/Inertia - Virtual mass (higher = less responsive)
+    # Unit: kg (translational) or kg·m² (rotational)
+    inertia: [10.0, 10.0, 10.0]
+
+    # Damping - Energy dissipation (higher = slower)
+    # Unit: Ns/m or Nms/rad
+    damping: [3.0, 3.0, 3.0]
+
+    # Position Stiffness (Kp) - Restoring force
+    # Unit: N/m or Nm/rad (0 = free movement)
+    stiffness_p: [0.0, 0.0, 0.0]
+
+    # Velocity Stiffness (Kd) - Additional virtual damping
+    # Unit: Ns/m or Nms/rad
+    stiffness_d: [0.0, 0.0, 0.0]
+
+    dynamic_update: true
+
+  control:
+    dt: 0.001
+    mode: "force_displacement"      # force_displacement | torque_rotation
+    state_type: "position"          # position | orientation | joint
+
+  safety:
+    max_velocity: [1.0, 1.0, 0.5]
+    max_acceleration: [10.0, 10.0, 5.0]
+    max_force: [100.0, 100.0, 50.0]
+    dynamic_update: true
+
+  equilibrium:
+    position: [0.0, 0.0, 0.0]
+    velocity: [0.0, 0.0, 0.0]
+    dynamic_update: true
+
+  initial_state:
+    position: [0.0, 0.0, 0.0]
+    velocity: [0.0, 0.0, 0.0]
+    dynamic_update: false

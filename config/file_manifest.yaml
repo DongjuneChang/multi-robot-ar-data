@@ -1,0 +1,92 @@
+# File Manifest for Multi-HRI System
+# 모든 설정 파일의 인덱스 및 메타데이터
+# 수정일: 2025-11-27
+version: "2.0"
+base_path: "config/"
+
+# === Core Configuration Files ===
+core_configs:
+  - path: "network_config.yaml"
+    type: "NetworkConfigData"
+    required: true
+    description: "Network endpoints, ROS servers, streaming channels"
+
+  - path: "ai_config.yaml"
+    type: "AIConfigData"
+    required: true
+    description: "RILEY AI server, LLM providers, personas"
+
+  - path: "device_config.yaml"
+    type: "DeviceConfigData"
+    required: true
+    description: "HoloLens device configuration"
+
+  - path: "robot_qr_mapping.yaml"
+    type: "RobotQRMappingData"
+    required: true
+    description: "QR code to robot type mapping"
+
+# === User Configuration (Override Pattern) ===
+user_configs:
+  defaults: "users/_defaults.yaml"
+  overrides_path: "users/overrides/"
+  type: "UserConfigData"
+  description: "User-specific settings (server, riley personas, permissions)"
+
+# === Robot Configuration (Override Pattern) ===
+network_robot_configs:
+  defaults: "network_robots/_defaults.yaml"
+  overrides_path: "network_robots/overrides/"
+  type: "NetworkRobotData"
+  description: "Robot TF mappings and network config per robot type"
+
+# === ROS2 Interface Configuration (Override Pattern) ===
+ros2_interface_configs:
+  defaults: "ros2_interface/_defaults.yaml"
+  overrides_path: "ros2_interface/overrides/"
+  type: "ROS2InterfaceData"
+  description: "ROS2 topic/service names per robot type"
+
+# === Unit Patterns ===
+unit_pattern_configs:
+  registry: "unit_patterns/patterns_registry.yaml"
+  patterns_path: "unit_patterns/"
+  type: "UnitPatternData"
+  description: "Waypoint patterns (square, circle, spiral, etc.)"
+
+# === Policy Configuration ===
+policy_configs:
+  - path: "policies/robot_visualization_strategy.yaml"
+    type: "VisualizationStrategyData"
+    required: true
+    description: "Robot visualization strategies and policies"
+
+# === Expert Profiles ===
+expert_configs:
+  - path: "expert_profiles.yaml"
+    type: "ExpertProfilesData"
+    required: false
+    description: "Expert user profiles for research"
+
+  - path: "expert_profile_template.yaml"
+    type: "ExpertProfileTemplate"
+    required: false
+    description: "Template for new expert profiles"
+
+# === Legacy (Deprecated) ===
+legacy:
+  path: "__legacy__/"
+  files:
+    - "map_data.yaml"      # Replaced by robot_qr_mapping.yaml + users/
+    - "file_manifest.yaml" # Previous version of this file
+
+# === Metadata ===
+metadata:
+  created: "2025-11-10"
+  updated: "2025-11-27"
+  updated_by: "Config Restructuring Session"
+  changes:
+    - "v2.0: Split map_data.yaml into robot_qr_mapping.yaml and users/"
+    - "v2.0: Split network_config.yaml, created ai_config.yaml"
+    - "v2.0: Added user config override pattern"
+    - "v2.0: Moved legacy files to __legacy__/"

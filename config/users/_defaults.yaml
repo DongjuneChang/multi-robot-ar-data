@@ -1,0 +1,51 @@
+# User Configuration Defaults
+# 모든 사용자 yaml 파일은 이 설정을 상속받아 오버라이드
+#
+# 사용법: 각 사용자 yaml에서 extends: "_defaults.yaml" 선언 후 필요한 값만 오버라이드
+
+# === 기본 사용자 정보 ===
+user_name: ""
+role: "user"  # admin | professor | researcher | user | developer
+show_in_html: true  # Web Panel 사용자 목록에 표시 여부
+
+# === 디바이스 설정 ===
+device_id: ""  # HoloLens 디바이스 ID (예: HOLOLENS-EP9MKK)
+device_ip: ""  # Device Portal 접속용 IP
+
+# === 서버 연결 설정 ===
+# 원격지 연결을 위한 서버 정보
+server:
+  ros_server: "localhost"     # network_config.yaml의 ros_config.servers 키 참조
+  ros_host: "127.0.0.1"       # ROS TCP 서버 IP (ros_server의 host 값)
+  ros_port: 10000             # ROS TCP 서버 포트
+
+# === 연결 모드 (network_config.yaml의 modes 참조) ===
+streaming_mode: "zmq_local"   # zmq_local | zmq_aggregator | websocket | disabled
+
+# === RILEY AI 설정 ===
+riley:
+  mode: "zmq_local"           # zmq_local | zmq_remote | http_ngrok
+  personas:                   # 활성화할 persona 목록 (ai_config.yaml 참조)
+    - basic
+
+# === 권한 설정 ===
+permissions:
+  # 로봇 스폰/삭제
+  can_spawn_robot: false
+  can_delete_robot: false
+  max_robots: 1
+
+  # Virtual/Guide 로봇
+  can_spawn_virtual: false   # Virtual Sync Robot 스폰 가능
+  can_spawn_guide: false     # VirtualGuide용 타겟 로봇 스폰 가능
+
+  # 원격 제어
+  can_remote_manipulation: false  # 원격에서 로봇 조작 가능
+  can_control_all: false          # 다른 사용자 로봇도 제어 가능
+
+  # 관리자
+  admin_access: false
+
+# === 접근 가능 QR/로봇 ===
+# "all" 또는 QR ID 리스트
+accessible_qr: []

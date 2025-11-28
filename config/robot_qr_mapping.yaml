@@ -1,0 +1,105 @@
+# Robot QR Code Mapping
+# QR 코드와 로봇 타입 매핑
+# robot_type은 network_robots/overrides/{robot_type}.yaml 파일명과 일치해야 함
+#
+# 작성일: 2025-11-27
+
+# === QR-로봇 매핑 ===
+# 각 QR ID에 할당된 로봇 타입과 위치 정보
+robot_qr_codes:
+  # ASU (NCHR Lab)
+  Q1:
+    robot_type: "xarm5"
+    location: "asu"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]  # ENU: 132mm East, 0mm North, 8mm Up
+      rotation: [0, 0, 1, 0]       # 180 degree Z-axis rotation
+
+  Q2:
+    robot_type: "iiwa14"
+    location: "asu"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]
+      rotation: [0, 0, 1, 0]
+
+  # ANL (Argonne)
+  Q3:
+    robot_type: "ur5e"
+    location: "anl"
+    mode: "teleoperation_master"
+    teleoperation_pair: "Q7"  # ur16e
+    robot_base_offset:
+      position: [0.132, 0, 0.008]
+      rotation: [0, 0, 1, 0]
+
+  Q4:
+    robot_type: "lite6"
+    location: "anl"
+    mode: "standalone"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]
+      rotation: [0, 0, 1, 0]
+
+  Q5:
+    robot_type: "ur3e"
+    location: "anl"
+    mode: "standalone"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]
+      rotation: [0, 0, 1, 0]
+
+  Q6:
+    robot_type: "fr3"
+    location: "anl"
+    mode: "inactive"  # 양팔 로봇 - Unity 미지원
+    note: "fr3 dual-arm - pending"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]
+      rotation: [0, 0, 1, 0]
+
+  Q7:
+    robot_type: "ur16e"
+    location: "anl"
+    mode: "teleoperation_slave"
+    teleoperation_pair: "Q3"  # ur5e
+    robot_base_offset:
+      position: [0.132, 0, 0.008]
+      rotation: [0, 0, 1, 0]
+
+  # 미할당 (추후 사용)
+  Q8:
+    robot_type: "iiwa7"
+    location: "unassigned"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]
+      rotation: [0, 0, 1, 0]
+
+  Q9:
+    robot_type: "med14"
+    location: "unassigned"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]
+      rotation: [0, 0, 1, 0]
+
+  Q10:
+    robot_type: "med7"
+    location: "unassigned"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]
+      rotation: [0, 0, 1, 0]
+
+  Q11:
+    robot_type: "kinova_gen3_7dof"
+    location: "anl"
+    mode: "inactive"  # 양팔 로봇 - Unity 미지원
+    note: "kinova dual-arm - pending"
+    robot_base_offset:
+      position: [0.132, 0, 0.008]
+      rotation: [0, 0, 1, 0]
+
+# === 일반 QR 코드 (로봇 없음) ===
+general_qr_codes:
+  Q101:
+    purpose: "calibration_marker"
+  Q102:
+    purpose: "reference_point"

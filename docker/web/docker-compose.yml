@@ -1,0 +1,38 @@
+# Multi-HRI Web Server Docker Compose
+#
+# 사용법:
+#   1. .env 파일에 로컬 경로 설정 (선택사항)
+#   2. docker-compose up --build -d
+#
+# .env 예시:
+#   SHARED_DATA_PATH=D:/Data_AR/dev/multi-hri-mr/shared_data
+#   ROBOT_ROS2_REPOS_PATH=D:/Data_AR/dev/multi-hri-mr/robot_ros2/repos
+#   HOST_IP=192.168.0.100
+
+services:
+  web-server:
+    build:
+      context: ../..
+      dockerfile: docker/web/Dockerfile
+    container_name: multi-hri-web
+    ports:
+      # 외부 접근 허용 (0.0.0.0 = 모든 인터페이스)
+      - "0.0.0.0:5000:5000"
+    volumes:
+      # shared_data (로컬 경로 또는 기본값)
+      - ${SHARED_DATA_PATH:-../..}:/app/shared_data
+      # robot_ros2 repos (ROS2 패키지들, 읽기 전용)
+      - ${ROBOT_ROS2_REPOS_PATH:-../../../robot_ros2/repos}:/app/robot_ros2/repos:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DOCKER_ENV=1
+      - SHARED_DATA_DIR=/app/shared_data
+      - ROBOT_ROS2_REPOS_DIR=/app/robot_ros2/repos
+      - HOST_IP=${HOST_IP:-0.0.0.0}
+    networks:
+      - multi-hri-net
+    restart: unless-stopped
+
+networks:
+  multi-hri-net:
+    driver: bridge

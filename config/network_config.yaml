@@ -13,34 +13,9 @@ app_server:
   # ngrok http 5000 --domain=multi-hri.ngrok.app
   # 또는 ngrok start --config=ngrok_config.yml flask-app
 
-# === Riley AI/LLM 채널 ===
-riley_config:
-  wake_word: "Riley"
-  listening_duration: 5.0
-  
-  # 연결 모드별 설정
-  modes:
-    zmq_local:  # 로컬 ZMQ 연결 (WSL2)
-      type: "zmq"
-      host: "localhost"
-      publish_port: 5565    # Unity → Python (음성 명령)
-      subscribe_port: 5566  # Python → Unity (LLM 응답)
-      ollama_port: 11434
-      model: "llama3.2:1b"
-      
-    zmq_remote:  # 원격 ZMQ 연결 (ROS 서버와 같은 머신)
-      type: "zmq"
-      host: "10.200.84.141"
-      publish_port: 5565
-      subscribe_port: 5566
-      ollama_port: 11434
-      model: "llama3.2:3b"
-      
-    http_ngrok:  # ngrok HTTP API (GPU 서버)
-      type: "http"
-      endpoint: "https://riley.multi-hri.ngrok.app"
-      api_key: "optional_key"
-      model: "llama3.2:70b"
+# === Riley AI/LLM 설정 ===
+# NOTE: RILEY 설정은 ai_config.yaml로 이동되었습니다
+# 사용자별 RILEY 모드는 users/overrides/{user}.yaml의 riley.mode 참조
 
 # === 데이터 스트리밍 채널 ===
 streaming_config:
@@ -79,8 +54,11 @@ photon_config:
   max_players: 10
 
 # === ROS2 설정 (Unity Robotics TCP Connector) ===
+# NOTE: 이 설정은 Unity NetworkConfigData.cs에서 사용됨
+# TCP Endpoint 포트는 여기서만 정의 (Single Source of Truth)
+# ros2_interface/_defaults.yaml에서는 이 파일을 참조
 ros_config:
-  # Unity ROSTCPConnector 설정
+  # Unity ROSTCPConnector 설정 (HoloLens2 ↔ Linux ROS2 Docker)
   servers:
     nchr_kuka:
       host: "10.200.84.141"
@@ -97,7 +75,11 @@ ros_config:
     chicago_home:
       host: "192.168.1.4"
       port: 10000
-      
+
+    anl:  # Argonne National Laboratory
+      host: "172.14.1.100"
+      port: 10000
+
     localhost:
       host: "127.0.0.1"
       port: 10000
