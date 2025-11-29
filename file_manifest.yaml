@@ -40,19 +40,21 @@ network_robot_configs:
   type: "NetworkRobotData"
   description: "Robot TF mappings and network config per robot type"
 
-# === ROS2 Interface Configuration (Override Pattern) ===
-ros2_interface_configs:
-  defaults: "ros2_interface/_defaults.yaml"
-  overrides_path: "ros2_interface/overrides/"
-  type: "ROS2InterfaceData"
-  description: "ROS2 topic/service names per robot type"
+# === ROS2 Interface Configuration (Unity에서 사용 안함 - HTML/ROS2용) ===
+# Web Panel이 직접 /config/ros2_interface/ 경로로 로드
+# ros2_interface_configs:
+#   defaults: "ros2_interface/_defaults.yaml"
+#   overrides_path: "ros2_interface/overrides/"
+#   type: "ROS2InterfaceData"
+#   description: "ROS2 topic/service names per robot type"
 
-# === Unit Patterns ===
-unit_pattern_configs:
-  registry: "unit_patterns/patterns_registry.yaml"
-  patterns_path: "unit_patterns/"
-  type: "UnitPatternData"
-  description: "Waypoint patterns (square, circle, spiral, etc.)"
+# === Unit Patterns (Unity에서 사용 안함 - HTML/ROS2용) ===
+# 패턴 계산은 ROS2 pattern_test_service가 처리
+# unit_pattern_configs:
+#   registry: "unit_patterns/patterns_registry.yaml"
+#   patterns_path: "unit_patterns/"
+#   type: "UnitPatternData"
+#   description: "Waypoint patterns (square, circle, spiral, etc.)"
 
 # === Policy Configuration ===
 policy_configs:
@@ -61,17 +63,17 @@ policy_configs:
     required: true
     description: "Robot visualization strategies and policies"
 
-# === Expert Profiles ===
-expert_configs:
-  - path: "expert_profiles.yaml"
-    type: "ExpertProfilesData"
-    required: false
-    description: "Expert user profiles for research"
-
-  - path: "expert_profile_template.yaml"
-    type: "ExpertProfileTemplate"
-    required: false
-    description: "Template for new expert profiles"
+# === Expert Profiles (Unity에서 사용 안함 - AI Mimic용) ===
+# expert_configs:
+#   - path: "ai/ai_mimic_expert_profiles.yaml"
+#     type: "ExpertProfilesData"
+#     required: false
+#     description: "Expert user profiles for AI Mimic research"
+#
+#   - path: "ai/ai_mimic_expert_profile_template.yaml"
+#     type: "ExpertProfileTemplate"
+#     required: false
+#     description: "Template for new expert profiles"
 
 # === Legacy (Deprecated) ===
 legacy:
@@ -94,3 +96,6 @@ metadata:
     - "v2.1: Restructured network_config.yaml (servers.web/ai/ros2/photon)"
     - "v2.1: Deleted unused server_config.yaml"
     - "v2.1: Added per-device portal credentials to device_config.yaml"
+    - "v2.1: Commented out expert_configs (AI Mimic용, Unity 미사용)"
+    - "v2.1: Commented out ros2_interface_configs (HTML/ROS2용, Unity 미사용)"
+    - "v2.1: Commented out unit_pattern_configs (HTML/ROS2용, Unity 미사용)"
