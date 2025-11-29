@@ -10,10 +10,6 @@ core_configs:
     type: "NetworkConfigData"
     required: true
     description: "Server endpoints (web, ai, ros2, photon), streaming, timeouts"
-    structure:
-      servers: "web, ai, ros2, photon"
-      streaming: "update_rate, data_types, modes"
-      timeouts: "ros_connection, ai_connection, streaming_connection"
 
   - path: "ai/ai_config.yaml"
     type: "AIConfigData"
