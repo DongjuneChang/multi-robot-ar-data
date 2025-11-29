@@ -1,7 +1,7 @@
 # File Manifest for Multi-HRI System
 # 모든 설정 파일의 인덱스 및 메타데이터
-# 수정일: 2025-11-27
-version: "2.0"
+# 수정일: 2025-11-29
+version: "2.1"
 base_path: "config/"
 
 # === Core Configuration Files ===
@@ -9,9 +9,13 @@ core_configs:
   - path: "network_config.yaml"
     type: "NetworkConfigData"
     required: true
-    description: "Network endpoints, ROS servers, streaming channels"
+    description: "Server endpoints (web, ai, ros2, photon), streaming, timeouts"
+    structure:
+      servers: "web, ai, ros2, photon"
+      streaming: "update_rate, data_types, modes"
+      timeouts: "ros_connection, ai_connection, streaming_connection"
 
-  - path: "ai_config.yaml"
+  - path: "ai/ai_config.yaml"
     type: "AIConfigData"
     required: true
     description: "RILEY AI server, LLM providers, personas"
@@ -19,7 +23,7 @@ core_configs:
   - path: "device_config.yaml"
     type: "DeviceConfigData"
     required: true
-    description: "HoloLens device configuration"
+    description: "HoloLens device configuration (per-device portal credentials)"
 
   - path: "robot_qr_mapping.yaml"
     type: "RobotQRMappingData"
@@ -79,14 +83,18 @@ legacy:
   files:
     - "map_data.yaml"      # Replaced by robot_qr_mapping.yaml + users/
     - "file_manifest.yaml" # Previous version of this file
+    - "server_config.yaml" # Deleted - unused registry file
 
 # === Metadata ===
 metadata:
   created: "2025-11-10"
-  updated: "2025-11-27"
+  updated: "2025-11-29"
   updated_by: "Config Restructuring Session"
   changes:
     - "v2.0: Split map_data.yaml into robot_qr_mapping.yaml and users/"
     - "v2.0: Split network_config.yaml, created ai_config.yaml"
     - "v2.0: Added user config override pattern"
     - "v2.0: Moved legacy files to __legacy__/"
+    - "v2.1: Restructured network_config.yaml (servers.web/ai/ros2/photon)"
+    - "v2.1: Deleted unused server_config.yaml"
+    - "v2.1: Added per-device portal credentials to device_config.yaml"
