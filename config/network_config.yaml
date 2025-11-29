@@ -53,7 +53,7 @@ servers:
 
   # Photon Fusion2 (멀티유저 동기화)
   photon:
-    app_id: "YOUR_PHOTON_APP_ID"
+    app_id: "165936a1-4ec1-421d-8930-399921013e1e"
     region: "us"
     room_name: "MultiHRI-Room"
     max_players: 10

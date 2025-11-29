@@ -36,6 +36,7 @@ streaming_presets:
 # owner: 디바이스 소유자 (users/overrides/{owner}.yaml과 연결)
 # 서버 설정은 user config의 server.ros_server 참조
 # portal_username/portal_password: Device Portal 인증 (디바이스마다 다름)
+# user_location: on_site | remote (VirtualTwin 표시 정책에 사용)
 devices:
   "HOLOLENS-EP9MKK":
     owner: "dongjune_chang"
@@ -43,6 +44,7 @@ devices:
     streaming_preset: "medium"
     portal_username: "test"
     portal_password: "1a2s3D4F5G*"
+    user_location: "on_site"
 
   "HOLOLENS-G4NTC8":
     owner: "hyunglae_lee"
@@ -50,6 +52,7 @@ devices:
     streaming_preset: "medium"
     portal_username: "test"
     portal_password: "1a2s3D4F5G*"
+    user_location: "on_site"
 
   "HOLOLENS-OG5M61":
     owner: "youngsoo_park"
@@ -57,6 +60,7 @@ devices:
     streaming_preset: "medium"
     portal_username: "anl"
     portal_password: "q1w2e3r4"
+    user_location: "on_site"
 
   # Unity Editor / Desktop 테스트용
   "UNITY_EDITOR":
@@ -65,6 +69,7 @@ devices:
     streaming_preset: "medium"
     portal_username: "test"
     portal_password: "1a2s3D4F5G*"
+    user_location: "on_site"
 
   "MSI":
     owner: "dongjune_chang"
@@ -72,6 +77,7 @@ devices:
     streaming_preset: "high"
     portal_username: "test"
     portal_password: "1a2s3D4F5G*"
+    user_location: "on_site"
 
   # 기본값 (디바이스명 감지 실패시)
   default:
@@ -80,3 +86,4 @@ devices:
     streaming_preset: "medium"
     portal_username: "test"
     portal_password: "1a2s3D4F5G*"
+    user_location: "on_site"
