@@ -6,25 +6,22 @@ user_name: "Hyunglae Lee"
 role: "professor"
 show_in_html: true
 
-# === 디바이스 설정 ===
-device_id: "HOLOLENS-G4NTC8"
-device_ip: "192.168.10.128"
-
 # === 서버 연결 설정 (ASU) ===
+# ros_server: network_config.yaml의 servers.ros2 키 참조
+# 디바이스 정보는 device_config.yaml에서 관리
 server:
-  ros_server: "nchr_xarm5"
-  ros_host: "192.168.1.100"
-  ros_port: 10000
+  ros_server: "nchr_xarm5"  # 위치에 따라 변경 가능
 
 # === 연결 모드 ===
 streaming_mode: "zmq_local"
 
 # === RILEY AI 설정 ===
 riley:
-  mode: "http_ngrok"  # GPU 서버 사용
+  mode: "http_ngrok"  # GPU 서버 사용 (ai_config.yaml modes 참조)
   personas:
     - basic
     - robot_expert
+  mimic_expert: "hyunglae_lee"  # config/ai/ai_mimic_expert_profiles.yaml 참조
 
 # === 권한 설정 ===
 permissions:

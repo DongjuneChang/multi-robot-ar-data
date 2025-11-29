@@ -65,14 +65,14 @@ class RILEYAPIHandler:
             return {}
 
     def _load_profile_template(self):
-        """Load expert profile template (NO HARDCODING)"""
-        template_path = Path('/app/config/expert_profile_template.yaml')
+        """Load mimic expert profile template"""
+        template_path = Path('/app/config/ai/ai_mimic_expert_profile_template.yaml')
         try:
             with open(template_path) as f:
                 data = yaml.safe_load(f)
                 return data.get('expert_profile_template', {})
         except FileNotFoundError:
-            print(f"Warning: expert_profile_template.yaml not found")
+            print(f"Warning: ai_mimic_expert_profile_template.yaml not found")
             return {}
         except Exception as e:
             print(f"Error loading profile template: {e}")
@@ -80,7 +80,7 @@ class RILEYAPIHandler:
 
     def _load_expert_profile(self, expert_id):
         """
-        Load expert profile from expert_profiles.yaml
+        Load mimic expert profile from ai_mimic_expert_profiles.yaml
 
         Args:
             expert_id: Expert profile ID (e.g., 'hyunglae_lee', 'youngsoo_park')
@@ -88,10 +88,10 @@ class RILEYAPIHandler:
         Returns:
             dict: Expert profile data or None if not found
         """
-        profiles_path = Path('/app/config/expert_profiles.yaml')
+        profiles_path = Path('/app/config/ai/ai_mimic_expert_profiles.yaml')
 
         if not profiles_path.exists():
-            print(f"Warning: expert_profiles.yaml not found")
+            print(f"Warning: ai_mimic_expert_profiles.yaml not found")
             return None
 
         try:
@@ -502,12 +502,12 @@ class RILEYAPIHandler:
                 "count": 3
             }
         """
-        profiles_path = Path('/app/config/expert_profiles.yaml')
+        profiles_path = Path('/app/config/ai/ai_mimic_expert_profiles.yaml')
 
         if not profiles_path.exists():
             return jsonify({
                 'status': 'error',
-                'message': 'expert_profiles.yaml not found'
+                'message': 'ai_mimic_expert_profiles.yaml not found'
             }), 404
 
         try:

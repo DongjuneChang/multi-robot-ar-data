@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Multi-Robot Control Panel v4.5.3</title>
+    <title>Multi User Multi Robot Control Panel v4.5.3</title>
     <style>
         * {
             margin: 0;
@@ -244,7 +244,7 @@
     <!-- Login Overlay -->
     <div class="login-overlay" id="login-overlay">
         <div class="login-box">
-            <h2>MULTI-ROBOT CONTROL PANEL</h2>
+            <h2>MULTI USER MULTI ROBOT CONTROL PANEL</h2>
             <p>Select your user profile to continue</p>
 
             <label for="user-select">User</label>
@@ -265,7 +265,7 @@
 
     <!-- Main App -->
     <header class="header">
-        <h1>MULTI-ROBOT CONTROL PANEL v4.5.3</h1>
+        <h1>MULTI USER MULTI ROBOT CONTROL PANEL v4.5.3</h1>
         <div class="header-status">
             <span id="current-panel">Robot Control</span>
             <span>|</span>
@@ -296,7 +296,7 @@
         </nav>
 
         <main class="main-content">
-            <iframe id="panel-frame" class="panel-frame" src="robot_control/index.html"></iframe>
+            <iframe id="panel-frame" class="panel-frame" src=""></iframe>
         </main>
     </div>
 
@@ -317,6 +317,7 @@
             currentUser = JSON.parse(savedUser);
             document.getElementById('login-overlay').classList.add('hidden');
             updateUserDisplay();
+            document.getElementById('panel-frame').src = 'robot_control/index.html';
         } else if (savedUserId) {
             // Restore from individual keys (teams-ai-integration format)
             currentUser = {
@@ -327,6 +328,7 @@
             sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
             document.getElementById('login-overlay').classList.add('hidden');
             updateUserDisplay();
+            document.getElementById('panel-frame').src = 'robot_control/index.html';
         }
 
         // Load users for login dropdown
@@ -386,6 +388,9 @@
 
             document.getElementById('login-overlay').classList.add('hidden');
             updateUserDisplay();
+
+            // Load default panel after login
+            document.getElementById('panel-frame').src = 'robot_control/index.html';
         });
 
         // Logout handler

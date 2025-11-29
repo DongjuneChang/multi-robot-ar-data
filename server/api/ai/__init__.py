@@ -5,6 +5,6 @@ Contains AI-related API handlers:
 - riley_api: Riley AI assistant
 """
 
-from .riley_api import RileyAPIHandler
+from .riley_api import RILEYAPIHandler
 
-__all__ = ['RileyAPIHandler']
+__all__ = ['RILEYAPIHandler']

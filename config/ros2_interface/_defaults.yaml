@@ -1,6 +1,6 @@
 # ROS2 Environment Command Templates
 # 용도: Docker ROS2 컨테이너 명령어 정의 (command_templates 스타일)
-# 서버 주소: network_config.yaml의 ros_config.servers 참조
+# 서버 주소: network_config.yaml의 servers.ros2 참조
 
 # =============================================================================
 # ROS2 환경
@@ -33,9 +33,9 @@ foxglove:
 # =============================================================================
 # TCP Endpoint
 # =============================================================================
-# NOTE: TCP Endpoint 포트는 network_config.yaml의 ros_config.servers에서 정의됨
+# NOTE: TCP Endpoint 포트는 network_config.yaml의 servers.ros2에서 정의됨
 # 이 파일에서는 중복 정의하지 않음 (Single Source of Truth)
-# 참조: shared_data/config/network_config.yaml → ros_config.servers.*.port
+# 참조: shared_data/config/network_config.yaml → servers.ros2.*.port
 
 # =============================================================================
 # Commands (command_templates 스타일)

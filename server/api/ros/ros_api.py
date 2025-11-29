@@ -53,7 +53,7 @@ class ROS2APIHandler:
             return self._ros_server_url
 
         config = self._load_network_config()
-        servers = config.get('ros_config', {}).get('servers', {})
+        servers = config.get('servers', {}).get('ros2', {})
 
         if not servers:
             raise ValueError("No ROS2 servers defined in network_config.yaml")
@@ -88,7 +88,7 @@ class ROS2APIHandler:
 
         # Look up server by ID
         config = self._load_network_config()
-        servers = config.get('ros_config', {}).get('servers', {})
+        servers = config.get('servers', {}).get('ros2', {})
 
         if server_id in servers:
             server_info = servers[server_id]

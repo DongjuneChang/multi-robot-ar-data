@@ -128,19 +128,80 @@ class TrackingAPIHandler:
 
     def get_users(self):
         """
-        Get registered users from map_data
+        Get registered users from config/users/
+
+        Merges _defaults.yaml with overrides/*.yaml for each user
+        Returns only users with show_in_html: true
 
         Response:
             {
                 "status": "success",
-                "users": {...}
+                "users": {
+                    "user_id": {
+                        "user_name": "...",
+                        "role": "...",
+                        ...
+                    }
+                }
             }
         """
-        map_data = self.load_map_data()
+        users = {}
+        users_dir = self.config_dir / 'users'
+        defaults_path = users_dir / '_defaults.yaml'
+        overrides_dir = users_dir / 'overrides'
+
+        if not defaults_path.exists():
+            return jsonify({'status': 'success', 'users': {}})
+
+        # Load defaults
+        with open(defaults_path, 'r', encoding='utf-8') as f:
+            defaults = yaml.safe_load(f) or {}
+
+        # Load and merge each user override
+        if overrides_dir.exists():
+            for user_file in overrides_dir.glob('*.yaml'):
+                user_id = user_file.stem  # filename without .yaml
+
+                with open(user_file, 'r', encoding='utf-8') as f:
+                    override = yaml.safe_load(f) or {}
+
+                # Deep merge defaults + override
+                merged = self._deep_merge_dict(defaults, override)
+
+                # Only include if show_in_html is true
+                if merged.get('show_in_html', False):
+                    users[user_id] = merged
+
         return jsonify({
             'status': 'success',
-            'users': map_data.get('registered_users', {})
+            'users': users
         })
+
+    def _deep_merge_dict(self, defaults, overrides):
+        """Deep merge two dictionaries (override takes precedence)"""
+        if not isinstance(defaults, dict) or not isinstance(overrides, dict):
+            return overrides if overrides is not None else defaults
+
+        result = dict(defaults)
+
+        for key, override_value in overrides.items():
+            if override_value is None:
+                continue
+
+            if key not in result:
+                result[key] = override_value
+                continue
+
+            default_value = result[key]
+
+            # Recursively merge nested dicts
+            if isinstance(default_value, dict) and isinstance(override_value, dict):
+                result[key] = self._deep_merge_dict(default_value, override_value)
+            # Override non-empty values
+            elif override_value not in ('', [], {}):
+                result[key] = override_value
+
+        return result
 
     def get_robots(self):
         """

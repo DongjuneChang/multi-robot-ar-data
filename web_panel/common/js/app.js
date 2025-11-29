@@ -156,9 +156,9 @@ function populateServerList() {
     const select = document.getElementById('ros-server');
     select.innerHTML = '<option value="">Select server...</option>';
 
-    if (!state.networkConfig || !state.networkConfig.ros_config) return;
+    if (!state.networkConfig || !state.networkConfig.servers?.ros2) return;
 
-    const servers = state.networkConfig.ros_config.servers;
+    const servers = state.networkConfig.servers.ros2;
     for (const [name, config] of Object.entries(servers)) {
         const option = document.createElement('option');
         option.value = name;
@@ -186,7 +186,7 @@ function onServerChange() {
 
     if (!serverName || !state.networkConfig) return;
 
-    const server = state.networkConfig.ros_config.servers[serverName];
+    const server = state.networkConfig.servers.ros2[serverName];
     if (server) {
         state.rosServerIp = server.host;
         document.getElementById('connection-ip').textContent = server.host;

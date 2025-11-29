@@ -67,7 +67,7 @@ async function loadRobotServerOptions() {
 
         if (networkConfig) {
             const parsed = typeof networkConfig === 'string' ? jsyaml.load(networkConfig) : networkConfig;
-            const servers = parsed.ros_config?.servers || {};
+            const servers = parsed.servers?.ros2 || {};
 
             serverSelect.innerHTML = '';
             for (const [name, info] of Object.entries(servers)) {

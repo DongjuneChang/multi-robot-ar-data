@@ -9,6 +9,9 @@ server:
 # Static file routes
 # URL path -> local directory (relative to shared_data)
 static_routes:
+  # Web panel root (for index.html)
+  /web_panel: web_panel
+
   # Web panel pages
   /robot_control: web_panel/robot_control
   /settings: web_panel/settings
@@ -27,8 +30,7 @@ static_routes:
 # Index redirects
 # URL path -> redirect to
 index_redirects:
-  /: /robot_control/index.html
-  /web_panel: /robot_control/index.html
+  /: /web_panel/index.html
 
 # Default files
 default_index: index.html

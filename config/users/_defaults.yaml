@@ -8,16 +8,12 @@ user_name: ""
 role: "user"  # admin | professor | researcher | user | developer
 show_in_html: true  # Web Panel 사용자 목록에 표시 여부
 
-# === 디바이스 설정 ===
-device_id: ""  # HoloLens 디바이스 ID (예: HOLOLENS-EP9MKK)
-device_ip: ""  # Device Portal 접속용 IP
-
 # === 서버 연결 설정 ===
-# 원격지 연결을 위한 서버 정보
+# ros_server: network_config.yaml의 servers.ros2 키 참조
+# 실제 host/port는 network_config.yaml에서 조회
+# 디바이스 정보는 device_config.yaml에서 관리 (owner로 user와 연결)
 server:
-  ros_server: "localhost"     # network_config.yaml의 ros_config.servers 키 참조
-  ros_host: "127.0.0.1"       # ROS TCP 서버 IP (ros_server의 host 값)
-  ros_port: 10000             # ROS TCP 서버 포트
+  ros_server: "localhost"     # network_config.yaml의 servers.ros2 키
 
 # === 연결 모드 (network_config.yaml의 modes 참조) ===
 streaming_mode: "zmq_local"   # zmq_local | zmq_aggregator | websocket | disabled

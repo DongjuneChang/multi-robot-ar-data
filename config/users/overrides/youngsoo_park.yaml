@@ -6,24 +6,21 @@ user_name: "Youngsoo Park"
 role: "researcher"
 show_in_html: true
 
-# === 디바이스 설정 ===
-device_id: "HOLOLENS-OG5M61"
-device_ip: "172.14.1.8"
-
 # === 서버 연결 설정 (ANL) ===
+# ros_server: network_config.yaml의 servers.ros2 키 참조
+# 디바이스 정보는 device_config.yaml에서 관리
 server:
-  ros_server: "anl"
-  ros_host: "172.14.1.100"  # ANL ROS 서버 IP
-  ros_port: 10000
+  ros_server: "anl"  # 위치에 따라 변경 가능
 
 # === 연결 모드 ===
 streaming_mode: "zmq_local"
 
 # === RILEY AI 설정 ===
 riley:
-  mode: "zmq_local"
+  mode: "zmq_local"  # ai_config.yaml modes 참조
   personas:
     - basic
+  mimic_expert: "youngsoo_park"  # config/ai/ai_mimic_expert_profiles.yaml 참조
 
 # === 권한 설정 ===
 permissions:

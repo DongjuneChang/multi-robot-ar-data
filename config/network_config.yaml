@@ -1,69 +1,36 @@
 # Network Configuration for Multi-HRI System
-# Unity & Python 공용
+# Unity & Python 공용 - 모든 서버 엔드포인트 정의
 # 작성일: 2025-08-30
+# 수정일: 2025-11-29
 # 작성자: Dongjune Chang
+#
+# 각 서버는 물리적으로 다른 머신에 있을 수 있음:
+#   - HoloLens ↔ ROS2 Server (Linux): TCP 직접 통신
+#   - HoloLens ↔ Web Server (Flask): HTTP/WebSocket
+#   - HoloLens ↔ AI Server (RILEY): ZMQ/HTTP
 
-# === Management App 설정 ===
-app_server:
-  ngrok_domain: "multi-hri.ngrok.app"
-  flask_port: 5000
-  github_repo: "DongjuneChang/multi-robot-ar-data"
-  
-  # ngrok 실행 명령 (참고용)
-  # ngrok http 5000 --domain=multi-hri.ngrok.app
-  # 또는 ngrok start --config=ngrok_config.yml flask-app
+# === 서버 엔드포인트 ===
+servers:
+  # Web Panel 서버 (Flask)
+  # Flask 자체 설정: web_panel/server_config.yaml
+  web:
+    host: "multi-hri.ngrok.app"
+    port: 5000
+    github_repo: "DongjuneChang/multi-robot-ar-data"
 
-# === Riley AI/LLM 설정 ===
-# NOTE: RILEY 설정은 ai_config.yaml로 이동되었습니다
-# 사용자별 RILEY 모드는 users/overrides/{user}.yaml의 riley.mode 참조
+  # AI 서버 (RILEY)
+  # 상세 설정: ai/ai_config.yaml
+  ai:
+    host: "riley.multi-hri.ngrok.app"
+    port: 5001
 
-# === 데이터 스트리밍 채널 ===
-streaming_config:
-  update_rate: 10  # Hz
-  data_types:
-    - user_pose      # 사용자 위치
-    - qr_update      # QR 감지 이벤트
-    - robot_spawn    # 로봇 스폰
-    
-  # 연결 모드별 설정
-  modes:
-    zmq_local:  # 로컬 스트리밍
-      type: "zmq"
-      host: "localhost"
-      publish_port: 5567    # Unity → Python
-      subscribe_port: 5568  # Python → Unity
-      
-    zmq_aggregator:  # 중앙 집계 서버
-      type: "zmq"
-      host: "stream.multi-hri.ngrok.app"
-      publish_port: 5567
-      subscribe_port: 5568
-      
-    websocket:  # WebSocket (미래 옵션)
-      type: "websocket"
-      endpoint: "wss://stream.multi-hri.ngrok.app"
-      
-    disabled:  # 스트리밍 비활성화
-      type: "none"
-
-# === Photon Fusion2 설정 ===
-photon_config:
-  app_id: "YOUR_PHOTON_APP_ID"  # 실제 App ID로 교체
-  region: "us"  # us, asia, eu 등
-  room_name: "MultiHRI-Room"
-  max_players: 10
-
-# === ROS2 설정 (Unity Robotics TCP Connector) ===
-# NOTE: 이 설정은 Unity NetworkConfigData.cs에서 사용됨
-# TCP Endpoint 포트는 여기서만 정의 (Single Source of Truth)
-# ros2_interface/_defaults.yaml에서는 이 파일을 참조
-ros_config:
-  # Unity ROSTCPConnector 설정 (HoloLens2 ↔ Linux ROS2 Docker)
-  servers:
+  # ROS2 서버들 (Linux Docker)
+  # HoloLens ↔ ROS2 TCP 직접 통신
+  ros2:
     nchr_kuka:
       host: "10.200.84.141"
       port: 10000
-      
+
     nchr_xarm5:
       host: "192.168.1.100"
       port: 10000
@@ -71,12 +38,12 @@ ros_config:
     home:
       host: "192.168.1.100"
       port: 10000
-      
+
     chicago_home:
       host: "192.168.1.4"
       port: 10000
 
-    anl:  # Argonne National Laboratory
+    anl:
       host: "172.14.1.100"
       port: 10000
 
@@ -84,19 +51,43 @@ ros_config:
       host: "127.0.0.1"
       port: 10000
 
-# === 디바이스별 설정 ===
-# NOTE: 디바이스 설정은 device_config.yaml로 이동되었습니다
-# network_config.yaml은 네트워크 엔드포인트 정의만 포함합니다
+  # Photon Fusion2 (멀티유저 동기화)
+  photon:
+    app_id: "YOUR_PHOTON_APP_ID"
+    region: "us"
+    room_name: "MultiHRI-Room"
+    max_players: 10
+
+# === 데이터 스트리밍 채널 ===
+streaming:
+  update_rate: 10  # Hz
+  data_types:
+    - user_pose
+    - qr_update
+    - robot_spawn
+
+  modes:
+    zmq_local:
+      type: "zmq"
+      host: "localhost"
+      publish_port: 5567
+      subscribe_port: 5568
+
+    zmq_aggregator:
+      type: "zmq"
+      host: "stream.multi-hri.ngrok.app"
+      publish_port: 5567
+      subscribe_port: 5568
+
+    websocket:
+      type: "websocket"
+      endpoint: "wss://stream.multi-hri.ngrok.app"
+
+    disabled:
+      type: "none"
 
 # === 타임아웃 설정 ===
 timeouts:
   ros_connection: 5000
-  riley_connection: 3000
+  ai_connection: 3000
   streaming_connection: 2000
-
-# === Robot Visualization 설정 ===
-# NOTE: VirtualTwin display is now controlled by:
-# 1. UserLocation (on_site | remote) from device config above
-# 2. On-site users: Dialog on spawn + voice toggle ("Riley, Show/Hide Virtual Twin")
-# 3. Remote users: Always shown
-visualization: {}  # Placeholder (no settings needed)

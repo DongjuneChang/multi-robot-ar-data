@@ -22,7 +22,8 @@ from flask_socketio import SocketIO
 
 from api.config_api import ConfigAPIHandler, RobotConfigAPIHandler
 from api.tracking_api import TrackingAPIHandler
-from api.ros_api import ROS2APIHandler
+from api.ros import ROS2APIHandler
+from api.ai import RILEYAPIHandler
 from routes_manager import RoutesManager
 
 
@@ -80,6 +81,15 @@ class WebServer:
             config_dir=self.config_dir
         )
 
+        # AI subsystem (RILEY)
+        self.active_rileys = {}
+        self.ai_agents_config = self._load_ai_config()
+        self.riley_api = RILEYAPIHandler(
+            active_rileys=self.active_rileys,
+            ai_agents_config=self.ai_agents_config,
+            build_riley_system_prompt=self._build_riley_system_prompt
+        )
+
         # Register routes
         self._register_blueprints()
         self._register_static_routes()
@@ -87,11 +97,15 @@ class WebServer:
 
     def _register_blueprints(self):
         """Register API Blueprints"""
+        # Common APIs
         self.app.register_blueprint(self.config_api.blueprint, url_prefix='/api/config')
         self.app.register_blueprint(self.robot_api.blueprint, url_prefix='/api/robots')
         self.app.register_blueprint(self.tracking_api.blueprint, url_prefix='/api/tracking')
-        self.app.register_blueprint(self.ros_api.blueprint, url_prefix='/api/ros2')
         self.app.register_blueprint(self.routes.blueprint, url_prefix='/api/routes')
+
+        # Subsystem APIs
+        self.app.register_blueprint(self.ros_api.blueprint, url_prefix='/api/ros2')
+        self.app.register_blueprint(self.riley_api.blueprint, url_prefix='/api/ai/riley')
 
         # Legacy routes for compatibility
         self._register_legacy_routes()
@@ -128,11 +142,13 @@ class WebServer:
         for url_path, redirect_to in index_redirects.items():
             def make_redirect(target):
                 def handler():
+                    print(f"[DEBUG] Redirecting to: {target}")
                     return redirect(target)
                 return handler
             endpoint_name = f"redirect_{url_path.replace('/', '_')}"
             self.app.add_url_rule(url_path, endpoint_name, make_redirect(redirect_to))
             print(f"  Redirect: {url_path} -> {redirect_to}")
+            print(f"  [DEBUG] Closure captured: {redirect_to}")
 
         # Register static routes dynamically
         for url_path, local_dir in static_routes.items():
@@ -174,6 +190,78 @@ class WebServer:
                 'map_data': self.tracking_api._map_data,
                 'tracking_data': self.tracking_api.tracking_data
             })
+
+    def _load_ai_config(self):
+        """Load AI config from config/ai/ai_config.yaml"""
+        ai_config_path = self.config_dir / 'ai' / 'ai_config.yaml'
+        if ai_config_path.exists():
+            with open(ai_config_path, 'r', encoding='utf-8') as f:
+                return yaml.safe_load(f) or {}
+        print(f"[WebServer] Warning: ai_config.yaml not found at {ai_config_path}")
+        return {}
+
+    def _build_riley_system_prompt(self, persona_file='riley_persona.yaml'):
+        """
+        Build RILEY system prompt from persona YAML file
+
+        Args:
+            persona_file: Name of persona file in config/ai/personas/
+
+        Returns:
+            str: Formatted system prompt
+        """
+        persona_path = self.config_dir / 'ai' / 'personas' / persona_file
+
+        if not persona_path.exists():
+            print(f"[WebServer] Warning: {persona_file} not found, using default prompt")
+            return "You are RILEY, a helpful AI assistant."
+
+        try:
+            with open(persona_path, 'r', encoding='utf-8') as f:
+                persona = yaml.safe_load(f)
+
+            # Build system prompt from YAML structure
+            prompt_parts = []
+
+            # Header
+            p = persona.get('persona', {})
+            prompt_parts.append(f"You are {p.get('name', 'RILEY')}. {p.get('description', 'A helpful AI assistant')}.")
+            prompt_parts.append("")
+
+            # Core principles
+            core = persona.get('core_principles', {})
+            if core:
+                prompt_parts.append("=== Core Principles ===")
+                prompt_parts.append("")
+
+                for idx, (key, value) in enumerate(core.items(), 1):
+                    if isinstance(value, dict):
+                        prompt_parts.append(f"{idx}. {value.get('description', '')}")
+                        for rule in value.get('rules', []):
+                            prompt_parts.append(f"   - {rule}")
+                        prompt_parts.append("")
+
+            # Personality & Expertise
+            personality = persona.get('personality', {})
+            if personality:
+                prompt_parts.append("=== Personality ===")
+                for trait in personality.get('traits', []):
+                    prompt_parts.append(f"- {trait}")
+                prompt_parts.append("")
+
+                if 'expertise' in personality:
+                    prompt_parts.append("Expertise:")
+                    for exp in personality['expertise']:
+                        prompt_parts.append(f"- {exp}")
+                    prompt_parts.append("")
+
+            system_prompt = "\n".join(prompt_parts)
+            print(f"[WebServer] Built RILEY system prompt from {persona_file} ({len(system_prompt)} chars)")
+            return system_prompt
+
+        except Exception as e:
+            print(f"[WebServer] Error loading {persona_file}: {e}")
+            return "You are RILEY, a helpful AI assistant."
 
     def init_zmq(self, subscribe_port: int = 5565):
         """Initialize ZMQ for Unity integration"""

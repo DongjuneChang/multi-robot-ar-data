@@ -1,15 +1,14 @@
 # HoloLens 2 Device Configuration
 # 작성일: 2025-08-30
+# 수정일: 2025-11-29
 # 작성자: Dongjune Chang
 # 용도: HoloLens 2 디바이스 정보 및 Device Portal 접속 정보 관리
 
-# Device Portal 공통 인증 정보
+# Device Portal 공통 설정
 device_portal:
-  username: "test"
-  password: "1a2s3D4F5G*"
-  port: 443  # HTTPS 기본 포트
+  port: 443
   protocol: "https"
-  
+
   # API 엔드포인트
   endpoints:
     live_stream: "/api/holographic/stream/live.mp4"
@@ -34,61 +33,50 @@ streaming_presets:
     bitrate: 2000000  # 2 Mbps
 
 # HoloLens 2 디바이스 목록
-# 물리적 디바이스 정보 + 네트워크 설정 참조
+# owner: 디바이스 소유자 (users/overrides/{owner}.yaml과 연결)
+# 서버 설정은 user config의 server.ros_server 참조
+# portal_username/portal_password: Device Portal 인증 (디바이스마다 다름)
 devices:
   "HOLOLENS-EP9MKK":
     owner: "dongjune_chang"
-    device_ip: "192.168.10.108"  # Device Portal 접속용
+    device_ip: "192.168.10.108"
     streaming_preset: "medium"
-    # 네트워크 설정 (network_config.yaml 참조)
-    ros_server: "nchr_xarm5"      # ros_config.servers 참조
-    riley_mode: "zmq_local"       # riley_config.modes 참조
-    streaming_mode: "zmq_local"   # streaming_config.modes 참조
-    user_location: "on_site"      # on_site | remote
+    portal_username: "test"
+    portal_password: "1a2s3D4F5G*"
 
   "HOLOLENS-G4NTC8":
     owner: "hyunglae_lee"
     device_ip: "192.168.10.128"
     streaming_preset: "medium"
-    ros_server: "nchr_xarm5"
-    riley_mode: "http_ngrok"      # GPU 서버 사용
-    streaming_mode: "zmq_aggregator"  # 중앙 집계
-    user_location: "remote"       # Remote viewer
+    portal_username: "test"
+    portal_password: "1a2s3D4F5G*"
 
   "HOLOLENS-OG5M61":
     owner: "youngsoo_park"
     device_ip: "172.14.1.8"
     streaming_preset: "medium"
-    ros_server: "chicago_home"
-    riley_mode: "zmq_local"
-    streaming_mode: "zmq_local"
-    user_location: "on_site"      # On-site at Chicago
+    portal_username: "anl"
+    portal_password: "q1w2e3r4"
 
   # Unity Editor / Desktop 테스트용
   "UNITY_EDITOR":
-    owner: "developer"
+    owner: "dongjune_chang"
     device_ip: "127.0.0.1"
     streaming_preset: "medium"
-    ros_server: "chicago_home"
-    riley_mode: "zmq_local"
-    streaming_mode: "zmq_local"
-    user_location: "on_site"      # Editor는 on-site 테스트용
+    portal_username: "test"
+    portal_password: "1a2s3D4F5G*"
 
   "MSI":
     owner: "dongjune_chang"
     device_ip: "127.0.0.1"
     streaming_preset: "high"
-    ros_server: "chicago_home"
-    riley_mode: "zmq_local"
-    streaming_mode: "zmq_local"
-    user_location: "remote"       # Desktop은 remote로 간주
+    portal_username: "test"
+    portal_password: "1a2s3D4F5G*"
 
   # 기본값 (디바이스명 감지 실패시)
   default:
-    owner: "unknown"
+    owner: "dongjune_chang"
     device_ip: "127.0.0.1"
     streaming_preset: "medium"
-    ros_server: "localhost"
-    riley_mode: "zmq_local"
-    streaming_mode: "zmq_local"
-    user_location: "on_site"
+    portal_username: "test"
+    portal_password: "1a2s3D4F5G*"
