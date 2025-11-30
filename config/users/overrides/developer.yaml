@@ -3,7 +3,8 @@
 # HTML 사용자 목록에 표시되지 않음
 extends: "_defaults.yaml"
 
-user_name: "Developer"
+user_id: "developer"
+display_name: "Developer"
 role: "developer"
 show_in_html: false  # Web Panel에 표시 안 함
 

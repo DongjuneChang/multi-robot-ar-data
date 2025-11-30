@@ -2,7 +2,8 @@
 # ANL Researcher
 extends: "_defaults.yaml"
 
-user_name: "Youngsoo Park"
+user_id: "youngsoo_park"
+display_name: "Youngsoo Park"
 role: "researcher"
 show_in_html: true
 

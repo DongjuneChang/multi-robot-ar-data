@@ -2,7 +2,8 @@
 # ASU NCHR Lab Professor
 extends: "_defaults.yaml"
 
-user_name: "Hyunglae Lee"
+user_id: "hyunglae_lee"
+display_name: "Hyunglae Lee"
 role: "professor"
 show_in_html: true
 

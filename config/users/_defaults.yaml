@@ -4,7 +4,10 @@
 # 사용법: 각 사용자 yaml에서 extends: "_defaults.yaml" 선언 후 필요한 값만 오버라이드
 
 # === 기본 사용자 정보 ===
-user_name: ""
+# user_id: 파일명과 동일 (스네이크케이스, 공백 없음) - device_config.owner와 매칭
+# display_name: UI 표시용 이름 (로그인 화면, Web Panel 등)
+user_id: ""
+display_name: ""
 role: "user"  # admin | professor | researcher | user | developer
 show_in_html: true  # Web Panel 사용자 목록에 표시 여부
 

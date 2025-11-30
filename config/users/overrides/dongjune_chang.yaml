@@ -2,7 +2,8 @@
 # Admin - 모든 환경에서 전체 권한
 extends: "_defaults.yaml"
 
-user_name: "Dongjune Chang"
+user_id: "dongjune_chang"
+display_name: "Dongjune Chang"
 role: "admin"
 show_in_html: true
 
