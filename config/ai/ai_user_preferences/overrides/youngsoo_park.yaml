@@ -1,0 +1,12 @@
+# Youngsoo Park AI Preferences
+extends: "_defaults.yaml"
+
+user_id: "youngsoo_park"
+
+# === AI 페르소나 설정 ===
+personas:
+  - basic
+
+# === 전문가 Mimic 설정 ===
+# dongjune의 MR 시스템 지식을 빌려서 RILEY가 응답
+default_mimic: "dongjune_chang"

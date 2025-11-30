@@ -1,0 +1,13 @@
+# Hyunglae Lee AI Preferences
+extends: "_defaults.yaml"
+
+user_id: "hyunglae_lee"
+
+# === AI 페르소나 설정 ===
+personas:
+  - basic
+  - safety_expert
+
+# === 전문가 Mimic 설정 ===
+# 본인 프로필이므로 mimic 불필요 (null)
+default_mimic: null

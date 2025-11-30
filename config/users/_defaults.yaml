@@ -21,11 +21,10 @@ server:
 # === 연결 모드 (network_config.yaml의 modes 참조) ===
 streaming_mode: "zmq_local"   # zmq_local | zmq_aggregator | websocket | disabled
 
-# === RILEY AI 설정 ===
+# === RILEY AI 연결 설정 ===
+# 연결 모드만 여기서 설정 (personas, mimic 등은 ai/ai_user_preferences/로 분리)
 riley:
-  mode: "zmq_local"           # zmq_local | zmq_remote | http_ngrok
-  personas:                   # 활성화할 persona 목록 (ai_config.yaml 참조)
-    - basic
+  mode: "zmq_local"           # zmq_local | zmq_remote | http_ngrok (ai_config.yaml 참조)
 
 # === 권한 설정 ===
 permissions:

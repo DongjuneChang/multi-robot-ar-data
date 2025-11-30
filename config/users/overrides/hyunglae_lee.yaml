@@ -16,13 +16,10 @@ server:
 # === 연결 모드 ===
 streaming_mode: "zmq_local"
 
-# === RILEY AI 설정 ===
+# === RILEY AI 연결 ===
+# personas, mimic 등 AI 선호 설정은 ai/ai_user_preferences/로 분리됨
 riley:
-  mode: "http_ngrok"  # GPU 서버 사용 (ai_config.yaml modes 참조)
-  personas:
-    - basic
-    - robot_expert
-  mimic_expert: "hyunglae_lee"  # config/ai/ai_mimic_expert_profiles.yaml 참조
+  mode: "http_ngrok"  # GPU 서버 사용
 
 # === 권한 설정 ===
 permissions:

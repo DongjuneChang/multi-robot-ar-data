@@ -21,14 +21,10 @@ server:
 # === 연결 모드 ===
 streaming_mode: "zmq_local"
 
-# === RILEY AI 설정 ===
+# === RILEY AI 연결 ===
+# personas, mimic 등 AI 선호 설정은 ai/ai_user_preferences/로 분리됨
 riley:
   mode: "zmq_local"
-  personas:
-    - basic
-    - robot_expert
-    - safety_expert
-    - navigation_expert
 
 # === 권한 설정 (모든 권한) ===
 permissions:

@@ -1,0 +1,19 @@
+# Dongjune Chang AI Preferences
+extends: "_defaults.yaml"
+
+user_id: "dongjune_chang"
+
+# === AI 페르소나 설정 ===
+personas:
+  - basic
+  - robot_expert
+  - safety_expert
+
+# === 전문가 Mimic 설정 ===
+# 본인 프로필이므로 mimic 불필요 (null)
+default_mimic: null
+
+# === RAG 지식 소스 (향후 확장) ===
+rag_sources:
+  - "multi_hri_docs"
+  - "ros2_knowledge"
