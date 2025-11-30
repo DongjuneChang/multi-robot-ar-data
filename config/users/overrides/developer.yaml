@@ -8,15 +8,10 @@ display_name: "Developer"
 role: "developer"
 show_in_html: false  # Web Panel에 표시 안 함
 
-# === 디바이스 설정 ===
-device_id: "UNITY_EDITOR"
-device_ip: "127.0.0.1"
-
 # === 서버 연결 설정 (localhost) ===
+# 디바이스 정보는 device_config.yaml에서 관리
 server:
   ros_server: "localhost"
-  ros_host: "127.0.0.1"
-  ros_port: 10000
 
 # === 연결 모드 ===
 streaming_mode: "zmq_local"
