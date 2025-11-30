@@ -50,6 +50,7 @@ class RILEYAPIHandler:
         self.blueprint.route('/list_profiles', methods=['GET'])(self.list_profiles)
         self.blueprint.route('/despawn', methods=['POST'])(self.despawn_riley)
         self.blueprint.route('/export_history', methods=['GET'])(self.export_history)
+        self.blueprint.route('/get_user_preferences', methods=['GET'])(self.get_user_preferences)
 
     def _load_provider_config(self, provider_name):
         """Load LLM provider configuration from providers/{provider}.yaml"""
@@ -77,6 +78,52 @@ class RILEYAPIHandler:
         except Exception as e:
             print(f"Error loading profile template: {e}")
             return {}
+
+    def _load_user_ai_preferences(self, user_id):
+        """
+        Load user's AI preferences from ai_user_preferences/
+        Uses Override Pattern: _defaults.yaml + overrides/{user_id}.yaml
+
+        Args:
+            user_id: User ID (e.g., 'dongjune_chang')
+
+        Returns:
+            dict: Merged user AI preferences
+        """
+        base_path = Path('/app/config/ai/ai_user_preferences')
+        defaults_path = base_path / '_defaults.yaml'
+        override_path = base_path / 'overrides' / f'{user_id}.yaml'
+
+        # Load defaults
+        defaults = {}
+        try:
+            if defaults_path.exists():
+                with open(defaults_path) as f:
+                    defaults = yaml.safe_load(f) or {}
+        except Exception as e:
+            print(f"Warning: Failed to load ai_user_preferences defaults: {e}")
+
+        # Load override
+        override = {}
+        try:
+            if override_path.exists():
+                with open(override_path) as f:
+                    override = yaml.safe_load(f) or {}
+        except Exception as e:
+            print(f"Warning: Failed to load ai_user_preferences override for {user_id}: {e}")
+
+        # Deep merge
+        return self._deep_merge(defaults, override)
+
+    def _deep_merge(self, base, override):
+        """Deep merge two dictionaries"""
+        result = base.copy()
+        for key, value in override.items():
+            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                result[key] = self._deep_merge(result[key], value)
+            else:
+                result[key] = value
+        return result
 
     def _load_expert_profile(self, expert_id):
         """
@@ -202,7 +249,8 @@ class RILEYAPIHandler:
                 "user_id": "alice",
                 "user_name": "Alice" (optional),
                 "persona_language": "ko" or "en" (optional, default: "ko"),
-                "expert_profile": "hyunglae_lee" (optional, expert profile ID)
+                "expert_profile": "hyunglae_lee" (optional, expert profile ID),
+                "use_default_mimic": true (optional, use user's default_mimic from ai_user_preferences)
             }
 
         Response:
@@ -218,6 +266,7 @@ class RILEYAPIHandler:
         user_name = data.get('user_name', user_id)
         persona_language = data.get('persona_language', 'ko')
         expert_profile_id = data.get('expert_profile')
+        use_default_mimic = data.get('use_default_mimic', False)
 
         if not room or not user_id:
             return jsonify({'status': 'error', 'message': 'room and user_id required'}), 400
@@ -239,6 +288,14 @@ class RILEYAPIHandler:
             # Select persona file based on language
             persona_file = 'riley_persona_en.yaml' if persona_language == 'en' else 'riley_persona.yaml'
             system_prompt = self.build_riley_system_prompt(persona_file)
+
+            # If no explicit expert_profile, check user's default_mimic preference
+            if not expert_profile_id and use_default_mimic:
+                user_prefs = self._load_user_ai_preferences(user_id)
+                default_mimic = user_prefs.get('default_mimic')
+                if default_mimic:
+                    expert_profile_id = default_mimic
+                    print(f"Using default_mimic '{default_mimic}' from user preferences for {user_id}")
 
             # Merge with expert profile if provided
             expert_profile = None
@@ -661,3 +718,42 @@ class RILEYAPIHandler:
                 mimetype='application/json',
                 headers={'Content-Disposition': f'attachment;filename={bot_key}_history.json'}
             )
+
+    def get_user_preferences(self):
+        """
+        Get AI preferences for a user from ai_user_preferences/
+
+        Query params:
+            user_id: User ID (required, e.g., 'dongjune_chang')
+
+        Response:
+            {
+                "status": "success",
+                "user_id": "dongjune_chang",
+                "preferences": {
+                    "personas": ["basic", "robot_expert"],
+                    "default_mimic": null,
+                    "rag_sources": [],
+                    "crew_agents": []
+                }
+            }
+        """
+        user_id = request.args.get('user_id')
+
+        if not user_id:
+            return jsonify({'status': 'error', 'message': 'user_id required'}), 400
+
+        try:
+            preferences = self._load_user_ai_preferences(user_id)
+
+            return jsonify({
+                'status': 'success',
+                'user_id': user_id,
+                'preferences': preferences
+            })
+
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'message': f'Error loading preferences: {str(e)}'
+            }), 500

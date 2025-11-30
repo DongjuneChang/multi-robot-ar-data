@@ -64,7 +64,7 @@ devices:
 
   # Unity Editor / Desktop 테스트용
   "UNITY_EDITOR":
-    owner: "dongjune_chang"
+    owner: "developer"
     device_ip: "127.0.0.1"
     streaming_preset: "medium"
     portal_username: "test"
