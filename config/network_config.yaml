@@ -24,6 +24,7 @@ servers:
   ai:
     # 로컬 개발 (같은 PC)
     localhost:
+      type: "zmq"
       host: "127.0.0.1"
       zmq_pub_port: 5565      # Unity → Python
       zmq_sub_port: 5566      # Python → Unity
@@ -31,6 +32,7 @@ servers:
 
     # NCHR 연구실 서버
     nchr:
+      type: "zmq"
       host: "10.200.84.141"
       zmq_pub_port: 5565
       zmq_sub_port: 5566
@@ -38,6 +40,7 @@ servers:
 
     # 홈 서버
     home:
+      type: "zmq"
       host: "192.168.1.100"
       zmq_pub_port: 5565
       zmq_sub_port: 5566
@@ -45,6 +48,7 @@ servers:
 
     # ANL 서버
     anl:
+      type: "zmq"
       host: "172.14.1.100"
       zmq_pub_port: 5565
       zmq_sub_port: 5566
