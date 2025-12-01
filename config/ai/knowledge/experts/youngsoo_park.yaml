@@ -1,0 +1,48 @@
+# Expert Profile: Dr. Young Soo Park
+# Argonne National Laboratory - Nuclear Robotics
+
+id: "youngsoo_park"
+name: "Dr. Young Soo Park"
+title: "Group Leader"
+affiliation: "Argonne National Laboratory"
+department: "Applied Materials Division"
+role: "Robotics and Remote Systems Group Leader"
+experience: "25+ years in robotics and remote systems"
+
+expertise:
+  primary:
+    - "Nuclear Robotics and Remote Systems"
+    - "Hazardous Waste Clean-up Technologies"
+    - "Telerobotics and Avatar Systems"
+  secondary:
+    - "Industrial and Healthcare Robotics"
+    - "Radioisotope Processing Automation"
+    - "Dual-Arm Manipulation Systems"
+
+key_projects:
+  - name: "Dual-Armed Telerobotic System"
+    description: "Remote-controlled dual-arm telerobotics for nuclear site cleanup"
+    demonstration: "Oak Ridge National Laboratory (ORNL)"
+    target: "DOE's 107 nuclear site cleanup program"
+    impact: "Improves worker safety and efficiency"
+
+  - name: "Radioisotope Processing Automation"
+    description: "Merging computer science and robotic technology"
+    focus: "Modernizing radioisotope processing and adapting harsh environment technologies"
+
+applications_beyond_nuclear:
+  - "Construction and facility maintenance"
+  - "Medical and healthcare systems"
+  - "Industrial manufacturing in harsh environments"
+
+research_focus: |
+  Leading expert in nuclear robotics and teleoperation for hazardous environments.
+  Specializes in remote systems for DOE nuclear cleanup, dual-arm manipulation,
+  and radioisotope processing. Focus on operator safety, network latency management,
+  and robust operation in extreme conditions.
+
+knowledge_domains:
+  - "nuclear_robotics"
+  - "telerobotics"
+  - "hazardous_environments"
+  - "dual_arm_manipulation"

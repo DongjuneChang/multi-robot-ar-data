@@ -3,260 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings</title>
+    <title>Robot Settings</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="container">
-        <main class="main-content">
-            <!-- Connection Settings -->
-            <section class="panel connection-panel">
-                <h2>Connection Settings</h2>
+        <!-- Global Settings Bar -->
+        <header class="global-settings">
+            <div class="global-item">
+                <label for="ros-server">ROS2 Server:</label>
+                <select id="ros-server">
+                    <option value="">Select server...</option>
+                </select>
+            </div>
+            <div class="global-item">
+                <span class="label">IP:</span>
+                <span class="value" id="connection-ip">-</span>
+                <span class="label">Port:</span>
+                <span class="value" id="connection-port">10000</span>
+            </div>
+            <div class="global-item mode-group">
+                <label><input type="radio" name="mode" value="fake" checked> Fake</label>
+                <label><input type="radio" name="mode" value="real"> Real</label>
+                <label><input type="radio" name="mode" value="gazebo"> Gazebo</label>
+            </div>
+        </header>
 
-                <!-- Robot & Server Selection -->
-                <div class="subsection">
-                    <h3>Robot & Server</h3>
-                    <div class="control-group">
-                        <label for="robot-type">Robot Type:</label>
-                        <select id="robot-type">
-                            <option value="">Loading...</option>
-                        </select>
-                    </div>
-                    <div class="control-group">
-                        <label for="ros-server">ROS2 Server:</label>
-                        <select id="ros-server">
-                            <option value="">Select server...</option>
-                        </select>
-                    </div>
-                    <div class="connection-info">
-                        <span class="label">IP:</span>
-                        <span class="value" id="connection-ip">-</span>
-                        <span class="label">Port:</span>
-                        <span class="value" id="connection-port">10000</span>
-                    </div>
-                </div>
+        <!-- Robot Tabs -->
+        <nav class="robot-tabs" id="robot-tabs">
+            <div class="tab-loading">Loading robots...</div>
+        </nav>
 
-                <!-- System Mode -->
-                <div class="subsection">
-                    <h3>System Mode</h3>
-                    <div class="control-group">
-                        <div class="radio-group">
-                            <label><input type="radio" name="mode" value="fake" checked> Fake</label>
-                            <label><input type="radio" name="mode" value="real"> Real</label>
-                            <label><input type="radio" name="mode" value="gazebo"> Gazebo</label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ROS2 Services -->
-                <div class="subsection">
-                    <h3>ROS2 Services</h3>
-                    <div class="button-row">
-                        <button id="btn-tcp-endpoint" class="btn btn-primary" data-running="false">TCP Endpoint</button>
-                        <button id="btn-device-api" class="btn btn-primary" data-running="false">Device API</button>
-                    </div>
-                    <div class="connection-info">
-                        <span class="label">TCP Status:</span>
-                        <span class="value"><span class="status-dot disconnected" id="tcp-status-dot"></span><span id="tcp-status">Stopped</span></span>
-                    </div>
-                </div>
-
-                <!-- Foxglove Bridge -->
-                <div class="subsection">
-                    <h3>Foxglove Bridge</h3>
-                    <div class="connection-info">
-                        <span class="label">WebSocket:</span>
-                        <span class="value" id="foxglove-url">-</span>
-                        <span class="label">Status:</span>
-                        <span class="value"><span class="status-dot disconnected" id="foxglove-status-dot"></span><span id="foxglove-status">Disconnected</span></span>
-                    </div>
-                    <div class="button-row">
-                        <button id="btn-foxglove-connect" class="btn btn-primary">Connect</button>
-                        <button id="btn-foxglove-disconnect" class="btn btn-secondary" disabled>Disconnect</button>
-                    </div>
-                </div>
-
-                <!-- AR Devices -->
-                <div class="subsection">
-                    <h3>AR Devices (HoloLens/Quest)</h3>
-                    <div class="button-row">
-                        <button id="btn-scan-devices" class="btn btn-secondary">Scan Devices</button>
-                    </div>
-                    <div class="device-list" id="device-list">
-                        <p class="no-devices">No devices scanned</p>
-                    </div>
-                </div>
-
-                <!-- Foxglove Topics -->
-                <div class="subsection">
-                    <h3>Available Topics</h3>
-                    <div class="foxglove-topics" id="foxglove-topics">
-                        <div class="no-data">Not connected</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Robot Configuration -->
-            <section class="panel robot-config">
-                <h2>Robot Configuration</h2>
-
-                <div class="robot-header">
-                    <span class="robot-name" id="robot-name">No Robot Selected</span>
-                    <span class="robot-manufacturer" id="robot-manufacturer">-</span>
-                </div>
-
-                <!-- Joint Configuration -->
-                <div class="subsection">
-                    <h3>Joint Configuration</h3>
-                    <div class="joint-info">
-                        <div class="info-row">
-                            <span class="info-label">DOF:</span>
-                            <span id="robot-dof">-</span>
-                        </div>
-                    </div>
-
-                    <div class="joint-table-container">
-                        <table class="joint-table" id="joint-table">
-                            <thead>
-                                <tr>
-                                    <th>Joint</th>
-                                    <th>Zero</th>
-                                    <th>Home</th>
-                                    <th>Min</th>
-                                    <th>Max</th>
-                                </tr>
-                            </thead>
-                            <tbody id="joint-table-body">
-                                <tr><td colspan="5">No data</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Frame Hierarchy -->
-                <div class="subsection">
-                    <h3>Frame Hierarchy</h3>
-                    <div class="frame-info">
-                        <div class="info-row">
-                            <span class="info-label">Base Frame:</span>
-                            <span id="base-frame" class="mono">-</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">EEF Frame:</span>
-                            <span id="eef-frame" class="mono">-</span>
-                        </div>
-                    </div>
-                    <div class="frame-list" id="frame-list">
-                        No frames loaded
-                    </div>
-                </div>
-
-                <!-- Named Frames -->
-                <div class="subsection">
-                    <h3>Named Frames</h3>
-                    <div class="info-row">
-                        <span class="info-label">Robot Origin:</span>
-                        <span id="robot-origin" class="mono">-</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">WorkFrame:</span>
-                        <span id="workframe" class="mono">-</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Pattern & Control Settings -->
-            <section class="panel pattern-settings">
-                <h2>Movement Settings</h2>
-
-                <!-- Pattern Parameters -->
-                <div class="subsection">
-                    <h3>Pattern Parameters</h3>
-
-                    <div class="control-group">
-                        <label for="pattern-size">Size (m):</label>
-                        <div class="slider-group">
-                            <input type="range" id="pattern-size" min="0.05" max="0.5" step="0.01" value="0.20">
-                            <span id="pattern-size-value">0.20</span>
-                        </div>
-                    </div>
-
-                    <div class="control-group">
-                        <label for="pattern-height">Height Offset (m):</label>
-                        <div class="slider-group">
-                            <input type="range" id="pattern-height" min="-0.2" max="0.2" step="0.01" value="0.0">
-                            <span id="pattern-height-value">0.00</span>
-                        </div>
-                    </div>
-
-                    <div class="control-group">
-                        <label for="pattern-duration">Duration (s):</label>
-                        <div class="slider-group">
-                            <input type="range" id="pattern-duration" min="0.5" max="5.0" step="0.1" value="2.0">
-                            <span id="pattern-duration-value">2.0</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Admittance Control -->
-                <div class="subsection">
-                    <h3>Admittance Control</h3>
-
-                    <div class="control-group">
-                        <label>
-                            <input type="checkbox" id="admittance-enabled" checked>
-                            Enable Admittance Control
-                        </label>
-                    </div>
-
-                    <div class="admittance-params" id="admittance-params">
-                        <div class="param-group">
-                            <label>Inertia [x, y, z] (kg):</label>
-                            <div class="xyz-inputs">
-                                <input type="number" id="mass-x" step="0.1" value="10.0">
-                                <input type="number" id="mass-y" step="0.1" value="10.0">
-                                <input type="number" id="mass-z" step="0.1" value="10.0">
-                            </div>
-                        </div>
-
-                        <div class="param-group">
-                            <label>Damping [x, y, z]:</label>
-                            <div class="xyz-inputs">
-                                <input type="number" id="damping-x" step="0.1" value="3.0">
-                                <input type="number" id="damping-y" step="0.1" value="3.0">
-                                <input type="number" id="damping-z" step="0.1" value="3.0">
-                            </div>
-                        </div>
-
-                        <div class="param-group">
-                            <label>Stiffness [x, y, z]:</label>
-                            <div class="xyz-inputs">
-                                <input type="number" id="stiffness-x" step="0.1" value="0.0">
-                                <input type="number" id="stiffness-y" step="0.1" value="0.0">
-                                <input type="number" id="stiffness-z" step="0.1" value="0.0">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ROS2 Visualization -->
-                <div class="subsection">
-                    <h3>ROS2 Visualization</h3>
-                    <div class="info-row">
-                        <span class="info-label">Reference Frame:</span>
-                        <span id="ros2-reference-frame" class="mono">-</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Subscribe Frames:</span>
-                        <span id="subscribe-frame-count">-</span>
-                    </div>
-                </div>
-
-                <div class="button-row">
-                    <button id="btn-apply" class="btn btn-primary">Apply Settings</button>
-                    <button id="btn-reset" class="btn btn-secondary">Reset to Defaults</button>
-                </div>
-            </section>
+        <!-- Tab Content Area -->
+        <main class="tab-content" id="tab-content">
+            <!-- Dynamic robot panels will be inserted here -->
         </main>
 
         <!-- Status Bar -->
@@ -266,7 +46,7 @@
         </footer>
     </div>
 
-    <!-- JavaScript (shared from common) -->
+    <!-- JavaScript -->
     <script src="../common/js/js-yaml.min.js"></script>
     <script src="../common/js/api.js"></script>
     <script src="../common/js/foxglove.js"></script>

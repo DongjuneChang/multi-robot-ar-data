@@ -43,49 +43,6 @@
                     <span class="info-text">(current pose + path planner + markers)</span>
                 </div>
 
-                <!-- Path Planning & Pattern Test -->
-                <div class="subsection">
-                    <h3>Path Planning & Pattern Test</h3>
-
-                    <!-- Path Planning Row -->
-                    <div class="button-row">
-                        <button id="btn-start-path" class="btn btn-success" disabled>Start Path</button>
-                        <button id="btn-stop-path" class="btn btn-danger" disabled>Stop Path</button>
-                    </div>
-
-                    <div class="control-group">
-                        <label for="pattern-select">Pattern:</label>
-                        <select id="pattern-select">
-                            <option value="diamond">diamond</option>
-                            <option value="square">square</option>
-                            <option value="circle">circle</option>
-                            <option value="spiral">spiral</option>
-                            <option value="figure8">figure8</option>
-                            <option value="triangle">triangle</option>
-                            <option value="star">star</option>
-                        </select>
-                    </div>
-
-                    <div class="control-group">
-                        <label for="size-slider">Size (m):</label>
-                        <input type="range" id="size-slider" min="0.05" max="0.5" step="0.01" value="0.2">
-                        <span id="size-value">0.20</span>
-                    </div>
-
-                    <div class="control-group">
-                        <label for="speed-slider">Speed:</label>
-                        <input type="range" id="speed-slider" min="0.5" max="2.0" step="0.1" value="1.0">
-                        <span id="speed-value">1.0x</span>
-                    </div>
-
-                    <div class="button-row">
-                        <button id="btn-pattern-service" class="btn btn-primary" data-running="false">Launch Service</button>
-                        <button id="btn-preview" class="btn btn-info" disabled>Preview Test</button>
-                        <button id="btn-start-test" class="btn btn-success" disabled>Start Test</button>
-                        <button id="btn-stop-test" class="btn btn-danger" disabled>Stop Test</button>
-                    </div>
-                </div>
-
                 <!-- Joint Control -->
                 <div class="subsection">
                     <h3>Joint Control</h3>
@@ -128,14 +85,6 @@
                     <div class="status-item">
                         <span class="status-label">AR Devices:</span>
                         <span id="status-ar-devices" class="status-indicator status-stopped">Not scanned</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-label">Pattern Service:</span>
-                        <span id="status-pattern-service" class="status-indicator status-stopped">Stopped</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-label">Test Running:</span>
-                        <span id="status-test" class="status-indicator status-stopped">Stopped</span>
                     </div>
                     <div class="status-item">
                         <span class="status-label">Foxglove:</span>

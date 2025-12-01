@@ -1,15 +1,19 @@
 """
-Config API Blueprint
+Config API Blueprint v2.0
 Production-grade API for config file management
 - Config files serving
 - Robot config merging (_defaults + override)
-- No hardcoding - all paths from constructor
+- Uses shared deep_merge from lib/config_utils.py
 """
 
 from flask import Blueprint, jsonify, Response
 from pathlib import Path
 import yaml
-import copy
+
+# Import shared utilities
+import sys
+sys.path.insert(0, str(Path(__file__).parent.parent / 'lib'))
+from config_utils import deep_merge
 
 
 class ConfigAPIHandler:
@@ -39,6 +43,8 @@ class ConfigAPIHandler:
         self.blueprint.route('/map_data.yaml')(self.get_map_data)
         self.blueprint.route('/device_config.yaml')(self.get_device_config)
         self.blueprint.route('/network_config.yaml')(self.get_network_config)
+        self.blueprint.route('/locations')(self.get_locations)
+        self.blueprint.route('/robot-types')(self.get_robot_types)
 
     def get_config_file(self, filename: str):
         """
@@ -69,6 +75,61 @@ class ConfigAPIHandler:
     def get_network_config(self):
         """Get network_config.yaml"""
         return self.get_config_file('network_config.yaml')
+
+    def get_locations(self):
+        """
+        Get available server locations from network_config.yaml
+
+        Response:
+            {
+                "status": "success",
+                "locations": {
+                    "chicago_home": {"host": "192.168.1.4", "port": 10000, "description": "Chicago Home"},
+                    "anl": {"host": "10.0.0.5", "port": 10000, "description": "ANL Lab"}
+                }
+            }
+        """
+        filepath = self.config_dir / 'network_config.yaml'
+        if not filepath.exists():
+            return jsonify({'status': 'error', 'error': 'network_config.yaml not found'}), 404
+
+        with open(filepath, 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f) or {}
+
+        servers = config.get('servers', {}).get('ros2', {})
+
+        return jsonify({
+            'status': 'success',
+            'locations': servers
+        })
+
+    def get_robot_types(self):
+        """
+        Get available robot types from robot_qr_mapping.yaml
+
+        Response:
+            {
+                "status": "success",
+                "robot_types": ["lite6", "xarm5", "ur5e", ...]
+            }
+        """
+        filepath = self.config_dir / 'robot_qr_mapping.yaml'
+        if not filepath.exists():
+            return jsonify({'status': 'error', 'error': 'robot_qr_mapping.yaml not found'}), 404
+
+        with open(filepath, 'r', encoding='utf-8') as f:
+            map_data = yaml.safe_load(f) or {}
+
+        robot_qr_codes = map_data.get('robot_qr_codes', {})
+        robot_types = set()
+        for qr_info in robot_qr_codes.values():
+            if 'robot_type' in qr_info:
+                robot_types.add(qr_info['robot_type'])
+
+        return jsonify({
+            'status': 'success',
+            'robot_types': sorted(list(robot_types))
+        })
 
 
 class RobotConfigAPIHandler:
@@ -102,10 +163,11 @@ class RobotConfigAPIHandler:
         self.blueprint.route('/<robot_type>/config')(self.get_merged_config)
         self.blueprint.route('/<robot_type>/defaults')(self.get_defaults)
         self.blueprint.route('/<robot_type>/override')(self.get_override)
+        self.blueprint.route('/<robot_type>/qr')(self.get_robot_qr)
 
     def _load_map_data(self):
-        """Load map_data.yaml with caching"""
-        map_data_path = self.config_dir / 'map_data.yaml'
+        """Load robot_qr_mapping.yaml with caching"""
+        map_data_path = self.config_dir / 'robot_qr_mapping.yaml'
 
         if not map_data_path.exists():
             return {}
@@ -119,21 +181,11 @@ class RobotConfigAPIHandler:
 
         return self._map_data_cache or {}
 
-    def _deep_merge(self, base: dict, override: dict) -> dict:
-        """Deep merge two dictionaries"""
-        result = copy.deepcopy(base)
-
-        for key, value in override.items():
-            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
-                result[key] = self._deep_merge(result[key], value)
-            else:
-                result[key] = copy.deepcopy(value)
-
-        return result
+    # _deep_merge removed - using shared deep_merge from config_utils
 
     def list_robots(self):
         """
-        List available robots from map_data.yaml
+        List available robots from robot_qr_mapping.yaml
 
         Response:
             {
@@ -181,7 +233,7 @@ class RobotConfigAPIHandler:
         with open(override_path, 'r', encoding='utf-8') as f:
             override = yaml.safe_load(f)
 
-        merged = self._deep_merge(defaults, override)
+        merged = deep_merge(defaults, override)
         return jsonify(merged)
 
     def get_defaults(self, robot_type: str):
@@ -214,3 +266,41 @@ class RobotConfigAPIHandler:
 
         content = filepath.read_text(encoding='utf-8')
         return Response(content, mimetype='text/yaml')
+
+    def get_robot_qr(self, robot_type: str):
+        """
+        Get QR codes for specific robot type
+
+        Args:
+            robot_type: Robot type (e.g., 'lite6', 'xarm5')
+
+        Response:
+            {
+                "status": "success",
+                "robot_type": "lite6",
+                "qr_codes": {
+                    "Q4": {"location": "anl", ...}
+                }
+            }
+        """
+        map_data = self._load_map_data()
+        robot_qr_codes = map_data.get('robot_qr_codes', {})
+
+        # Filter QR codes for this robot type
+        filtered_qr = {}
+        for qr_id, qr_info in robot_qr_codes.items():
+            if qr_info.get('robot_type') == robot_type:
+                filtered_qr[qr_id] = qr_info
+
+        if not filtered_qr:
+            return jsonify({
+                'status': 'not_found',
+                'robot_type': robot_type,
+                'message': f'No QR codes found for robot type: {robot_type}'
+            }), 404
+
+        return jsonify({
+            'status': 'success',
+            'robot_type': robot_type,
+            'qr_codes': filtered_qr
+        })

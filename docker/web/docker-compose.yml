@@ -23,11 +23,14 @@ services:
       - ${SHARED_DATA_PATH:-../..}:/app/shared_data
       # robot_ros2 repos (ROS2 패키지들, 읽기 전용)
       - ${ROBOT_ROS2_REPOS_PATH:-../../../robot_ros2/repos}:/app/robot_ros2/repos:ro
+      # Projects (프로젝트 설정 파일들)
+      - ${PROJECTS_PATH:-../../../Projects}:/app/projects
     environment:
       - PYTHONUNBUFFERED=1
       - DOCKER_ENV=1
       - SHARED_DATA_DIR=/app/shared_data
       - ROBOT_ROS2_REPOS_DIR=/app/robot_ros2/repos
+      - PROJECTS_DIR=/app/projects
       - HOST_IP=${HOST_IP:-0.0.0.0}
     networks:
       - multi-hri-net

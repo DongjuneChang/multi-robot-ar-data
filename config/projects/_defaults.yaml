@@ -1,0 +1,35 @@
+# Project Configuration Defaults
+# 모든 프로젝트 yaml 파일은 이 설정을 상속받아 오버라이드
+#
+# 사용법: 각 프로젝트 yaml에서 extends: "_defaults.yaml" 선언 후 필요한 값만 오버라이드
+
+# === 기본 프로젝트 정보 ===
+id: ""
+name: ""
+description: ""
+created_by: ""
+
+# === 서버 호스트 ===
+# 누가 ROS2 서버를 운영하는가? (null = 서버 불필요, AR Only)
+server_host: null
+
+# === 서버 설정 ===
+server:
+  my_location: "localhost"              # network_config.yaml → servers.ros2 키
+  ros2_server: "localhost"              # 실제 연결할 서버 (자동 결정 또는 수동)
+  access_mode: "local_only"             # local_only | remote_enabled
+  foxglove_endpoint: null               # remote_enabled 시 필수
+
+# === 로봇 설정 ===
+robots: []
+
+# === 참여자 ===
+participants: []
+
+# === Photon Fusion2 ===
+fusion2:
+  room_name: ""
+  max_players: 10
+
+# === 상태 ===
+status: "inactive"                      # inactive | active

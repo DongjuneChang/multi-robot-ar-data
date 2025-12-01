@@ -1,23 +1,106 @@
 """
-RILEY API Blueprint
+RILEY API Blueprint v2.0
 Production-grade API for multi-user RILEY management
+
+Changes in v2.0:
+- Config paths updated to new ai/ structure
+- Expert profiles: ai/knowledge/experts/{id}.yaml (individual files)
+- Profile template: ai/knowledge/_defaults.yaml
+- Providers: ai/providers/{provider}.yaml
+- User preferences: ai/users/_defaults.yaml + overrides/
+- Uses shared ConfigLoader from lib/config_utils.py
+
 - Spawn/manage RILEY instances
 - User-to-RILEY communication
 - RILEY-to-RILEY communication
-- Expert profile integration
+- Expert profile integration (RAG-ready)
 """
 
 from flask import Blueprint, request, jsonify
-from ai_bot import AIBot
+from .ai_bot import AIBot
 import yaml
 import os
 from pathlib import Path
+from typing import Optional, List
+
+# Import shared ConfigLoader
+import sys
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'lib'))
+from config_utils import ConfigLoader, deep_merge
+
+
+class AIConfigLoader(ConfigLoader):
+    """
+    AI-specific config loader extending base ConfigLoader
+    Handles expert profiles, providers, and user preferences
+    """
+
+    def load_provider(self, provider_name: str) -> dict:
+        """Load LLM provider config from ai/providers/{provider}.yaml"""
+        return self.load_yaml(f'ai/providers/{provider_name}.yaml') or {}
+
+    def load_ai_defaults(self) -> dict:
+        """Load AI defaults from ai/_defaults.yaml"""
+        return self.load_yaml('ai/_defaults.yaml', use_cache=True) or {}
+
+    def load_knowledge_defaults(self) -> dict:
+        """Load knowledge defaults (expert profile template) from ai/knowledge/_defaults.yaml"""
+        return self.load_yaml('ai/knowledge/_defaults.yaml', use_cache=True) or {}
+
+    def load_expert_profile(self, expert_id: str) -> Optional[dict]:
+        """
+        Load expert profile from ai/knowledge/experts/{expert_id}.yaml
+        Falls back to _default.yaml if not found
+        """
+        profile = self.load_yaml(f'ai/knowledge/experts/{expert_id}.yaml')
+        if profile:
+            return profile
+
+        print(f"[AIConfigLoader] Expert '{expert_id}' not found, using _default.yaml")
+        return self.load_yaml('ai/knowledge/experts/_default.yaml')
+
+    def list_expert_profiles(self) -> List[dict]:
+        """
+        List all available expert profiles from ai/knowledge/experts/
+        Returns list of profile summaries for UI
+        """
+        profiles = []
+        for yaml_file in self.list_yaml_files('ai/knowledge/experts'):
+            try:
+                with open(yaml_file, 'r', encoding='utf-8') as f:
+                    data = yaml.safe_load(f) or {}
+
+                expertise = data.get('expertise', {})
+                primary = expertise.get('primary', [])
+
+                profiles.append({
+                    'id': data.get('id', yaml_file.stem),
+                    'name': data.get('name', ''),
+                    'title': data.get('title', ''),
+                    'affiliation': data.get('affiliation', ''),
+                    'description': ', '.join(primary[:2]) if primary else data.get('role', '')
+                })
+            except Exception as e:
+                print(f"[AIConfigLoader] Error reading {yaml_file}: {e}")
+                continue
+
+        return profiles
+
+    def load_user_preferences(self, user_id: str) -> dict:
+        """
+        Load user AI preferences with override pattern
+        ai/users/_defaults.yaml + ai/users/overrides/{user_id}.yaml
+        """
+        return self.load_with_defaults(
+            'ai/users/_defaults.yaml',
+            f'ai/users/overrides/{user_id}.yaml'
+        )
 
 
 class RILEYAPIHandler:
     """
-    RILEY API Handler with Dependency Injection
-    No global variables - all dependencies injected through constructor
+    RILEY API Handler v2.0 with Dependency Injection
+    Uses AIConfigLoader for all config access
     """
 
     def __init__(self, active_rileys, ai_agents_config, build_riley_system_prompt):
@@ -33,8 +116,12 @@ class RILEYAPIHandler:
         self.ai_agents_config = ai_agents_config
         self.build_riley_system_prompt = build_riley_system_prompt
 
-        # Load expert profile template (NO HARDCODING)
-        self.profile_template = self._load_profile_template()
+        # Initialize AI config loader
+        self.config = AIConfigLoader()
+
+        # Load and cache profile template from knowledge/_defaults.yaml
+        knowledge_defaults = self.config.load_knowledge_defaults()
+        self.profile_template = knowledge_defaults.get('expert_profile_template', {})
 
         # Create Flask Blueprint
         self.blueprint = Blueprint('riley_api', __name__)
@@ -51,113 +138,8 @@ class RILEYAPIHandler:
         self.blueprint.route('/despawn', methods=['POST'])(self.despawn_riley)
         self.blueprint.route('/export_history', methods=['GET'])(self.export_history)
         self.blueprint.route('/get_user_preferences', methods=['GET'])(self.get_user_preferences)
-
-    def _load_provider_config(self, provider_name):
-        """Load LLM provider configuration from providers/{provider}.yaml"""
-        config_path = os.path.join('/app/config/providers', f'{provider_name}.yaml')
-        try:
-            with open(config_path, 'r') as f:
-                return yaml.safe_load(f)
-        except FileNotFoundError:
-            print(f"Warning: Provider config not found: {config_path}")
-            return {}
-        except Exception as e:
-            print(f"Error loading provider config: {e}")
-            return {}
-
-    def _load_profile_template(self):
-        """Load mimic expert profile template"""
-        template_path = Path('/app/config/ai/ai_mimic_expert_profile_template.yaml')
-        try:
-            with open(template_path) as f:
-                data = yaml.safe_load(f)
-                return data.get('expert_profile_template', {})
-        except FileNotFoundError:
-            print(f"Warning: ai_mimic_expert_profile_template.yaml not found")
-            return {}
-        except Exception as e:
-            print(f"Error loading profile template: {e}")
-            return {}
-
-    def _load_user_ai_preferences(self, user_id):
-        """
-        Load user's AI preferences from ai_user_preferences/
-        Uses Override Pattern: _defaults.yaml + overrides/{user_id}.yaml
-
-        Args:
-            user_id: User ID (e.g., 'dongjune_chang')
-
-        Returns:
-            dict: Merged user AI preferences
-        """
-        base_path = Path('/app/config/ai/ai_user_preferences')
-        defaults_path = base_path / '_defaults.yaml'
-        override_path = base_path / 'overrides' / f'{user_id}.yaml'
-
-        # Load defaults
-        defaults = {}
-        try:
-            if defaults_path.exists():
-                with open(defaults_path) as f:
-                    defaults = yaml.safe_load(f) or {}
-        except Exception as e:
-            print(f"Warning: Failed to load ai_user_preferences defaults: {e}")
-
-        # Load override
-        override = {}
-        try:
-            if override_path.exists():
-                with open(override_path) as f:
-                    override = yaml.safe_load(f) or {}
-        except Exception as e:
-            print(f"Warning: Failed to load ai_user_preferences override for {user_id}: {e}")
-
-        # Deep merge
-        return self._deep_merge(defaults, override)
-
-    def _deep_merge(self, base, override):
-        """Deep merge two dictionaries"""
-        result = base.copy()
-        for key, value in override.items():
-            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
-                result[key] = self._deep_merge(result[key], value)
-            else:
-                result[key] = value
-        return result
-
-    def _load_expert_profile(self, expert_id):
-        """
-        Load mimic expert profile from ai_mimic_expert_profiles.yaml
-
-        Args:
-            expert_id: Expert profile ID (e.g., 'hyunglae_lee', 'youngsoo_park')
-
-        Returns:
-            dict: Expert profile data or None if not found
-        """
-        profiles_path = Path('/app/config/ai/ai_mimic_expert_profiles.yaml')
-
-        if not profiles_path.exists():
-            print(f"Warning: ai_mimic_expert_profiles.yaml not found")
-            return None
-
-        try:
-            with open(profiles_path) as f:
-                data = yaml.safe_load(f)
-
-            experts = data.get('experts', [])
-
-            # Find expert by ID
-            for expert in experts:
-                if expert.get('id') == expert_id:
-                    return expert
-
-            print(f"Warning: Expert profile '{expert_id}' not found")
-            return None
-
-        except Exception as e:
-            print(f"Error loading expert profile: {e}")
-            return None
+        # v2.0 new endpoints
+        self.blueprint.route('/health', methods=['GET'])(self.health_check)
 
     def _merge_persona_with_profile(self, base_persona, expert_profile):
         """
@@ -291,35 +273,39 @@ class RILEYAPIHandler:
 
             # If no explicit expert_profile, check user's default_mimic preference
             if not expert_profile_id and use_default_mimic:
-                user_prefs = self._load_user_ai_preferences(user_id)
+                user_prefs = self.config.load_user_preferences(user_id)
                 default_mimic = user_prefs.get('default_mimic')
                 if default_mimic:
                     expert_profile_id = default_mimic
-                    print(f"Using default_mimic '{default_mimic}' from user preferences for {user_id}")
+                    print(f"[RILEYAPIHandler] Using default_mimic '{default_mimic}' for {user_id}")
 
-            # Merge with expert profile if provided
+            # Merge with expert profile if provided (v2: individual files)
             expert_profile = None
             if expert_profile_id:
-                expert_profile = self._load_expert_profile(expert_profile_id)
+                expert_profile = self.config.load_expert_profile(expert_profile_id)
                 if expert_profile:
                     system_prompt = self._merge_persona_with_profile(system_prompt, expert_profile)
-                    print(f"Expert profile '{expert_profile_id}' merged for {bot_key}")
+                    print(f"[RILEYAPIHandler] Expert profile '{expert_profile_id}' merged for {bot_key}")
                 else:
-                    print(f"Warning: Expert profile '{expert_profile_id}' not found, using base persona")
+                    print(f"[RILEYAPIHandler] Expert profile '{expert_profile_id}' not found")
 
-            # Load provider-specific config
+            # Load provider-specific config (v2: ai/providers/)
             provider = riley_config.get('provider', 'ollama')
-            provider_config = self._load_provider_config(provider)
+            provider_config = self.config.load_provider(provider)
+
+            # Load AI defaults for fallback values
+            ai_defaults = self.config.load_ai_defaults()
+            llm_defaults = ai_defaults.get('llm', {})
 
             ai_bot = AIBot(
                 user_id=bot_key,
                 room=room,
                 llm_config={
                     'provider': provider,
-                    'model': provider_config.get('model', 'llama3.2'),
-                    'timeout': provider_config.get('timeout', 180),
+                    'model': provider_config.get('model', 'llama3.1:8b-instruct-q8_0'),
+                    'timeout': provider_config.get('options', {}).get('timeout', llm_defaults.get('timeout', 60)),
                     'url': provider_config.get('url', 'http://host.docker.internal:11434'),
-                    'api_key': provider_config.get('api_key', ''),
+                    'api_key': os.environ.get(provider_config.get('api_key_env', ''), ''),
                     'system_prompt': system_prompt
                 },
                 zmq_config=riley_config.get('zmq', {}),
@@ -559,40 +545,14 @@ class RILEYAPIHandler:
                 "count": 3
             }
         """
-        profiles_path = Path('/app/config/ai/ai_mimic_expert_profiles.yaml')
-
-        if not profiles_path.exists():
-            return jsonify({
-                'status': 'error',
-                'message': 'ai_mimic_expert_profiles.yaml not found'
-            }), 404
-
+        # v2: Load from individual files in ai/knowledge/experts/
         try:
-            with open(profiles_path) as f:
-                data = yaml.safe_load(f)
-
-            experts = data.get('experts', [])
-
-            # Build simplified profile list for UI
-            profiles = []
-            for expert in experts:
-                expertise = expert.get('expertise', {})
-                primary = expertise.get('primary', [])
-
-                profiles.append({
-                    'id': expert.get('id'),
-                    'name': expert.get('name'),
-                    'title': expert.get('title', ''),
-                    'affiliation': expert.get('affiliation', ''),
-                    'description': ', '.join(primary[:2]) if primary else expert.get('role', '')
-                })
-
+            profiles = self.config.list_expert_profiles()
             return jsonify({
                 'status': 'success',
                 'profiles': profiles,
                 'count': len(profiles)
             })
-
         except Exception as e:
             return jsonify({
                 'status': 'error',
@@ -721,7 +681,7 @@ class RILEYAPIHandler:
 
     def get_user_preferences(self):
         """
-        Get AI preferences for a user from ai_user_preferences/
+        Get AI preferences for a user
 
         Query params:
             user_id: User ID (required, e.g., 'dongjune_chang')
@@ -730,12 +690,7 @@ class RILEYAPIHandler:
             {
                 "status": "success",
                 "user_id": "dongjune_chang",
-                "preferences": {
-                    "personas": ["basic", "robot_expert"],
-                    "default_mimic": null,
-                    "rag_sources": [],
-                    "crew_agents": []
-                }
+                "preferences": { ... }
             }
         """
         user_id = request.args.get('user_id')
@@ -744,7 +699,8 @@ class RILEYAPIHandler:
             return jsonify({'status': 'error', 'message': 'user_id required'}), 400
 
         try:
-            preferences = self._load_user_ai_preferences(user_id)
+            # v2: Use config loader
+            preferences = self.config.load_user_preferences(user_id)
 
             return jsonify({
                 'status': 'success',
@@ -757,3 +713,20 @@ class RILEYAPIHandler:
                 'status': 'error',
                 'message': f'Error loading preferences: {str(e)}'
             }), 500
+
+    def health_check(self):
+        """
+        Health check endpoint for monitoring
+
+        Response:
+            {
+                "status": "healthy",
+                "version": "2.0",
+                "active_rileys": 3
+            }
+        """
+        return jsonify({
+            'status': 'healthy',
+            'version': '2.0',
+            'active_rileys': len(self.active_rileys)
+        })

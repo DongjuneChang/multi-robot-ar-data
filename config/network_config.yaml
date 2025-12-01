@@ -18,11 +18,43 @@ servers:
     port: 5000
     github_repo: "DongjuneChang/multi-robot-ar-data"
 
-  # AI 서버 (RILEY)
-  # 상세 설정: ai/ai_config.yaml
+  # AI 서버들 (RILEY + LLM)
+  # Provider 설정: ai/providers/*.yaml
+  # Riley 설정: ai/_defaults.yaml
   ai:
-    host: "riley.multi-hri.ngrok.app"
-    port: 5001
+    # 로컬 개발 (같은 PC)
+    localhost:
+      host: "127.0.0.1"
+      zmq_pub_port: 5565      # Unity → Python
+      zmq_sub_port: 5566      # Python → Unity
+      ollama_port: 11434
+
+    # NCHR 연구실 서버
+    nchr:
+      host: "10.200.84.141"
+      zmq_pub_port: 5565
+      zmq_sub_port: 5566
+      ollama_port: 11434
+
+    # 홈 서버
+    home:
+      host: "192.168.1.100"
+      zmq_pub_port: 5565
+      zmq_sub_port: 5566
+      ollama_port: 11434
+
+    # ANL 서버
+    anl:
+      host: "172.14.1.100"
+      zmq_pub_port: 5565
+      zmq_sub_port: 5566
+      ollama_port: 11434
+
+    # ngrok (HTTP 모드)
+    ngrok:
+      type: "http"
+      host: "riley.multi-hri.ngrok.app"
+      port: 5001
 
   # ROS2 서버들 (Linux Docker)
   # HoloLens ↔ ROS2 TCP 직접 통신

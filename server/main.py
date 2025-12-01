@@ -24,6 +24,7 @@ from api.config_api import ConfigAPIHandler, RobotConfigAPIHandler
 from api.tracking_api import TrackingAPIHandler
 from api.ros import ROS2APIHandler
 from api.ai import RILEYAPIHandler
+from api.projects_api import ProjectsAPIHandler
 from routes_manager import RoutesManager
 
 
@@ -81,6 +82,12 @@ class WebServer:
             config_dir=self.config_dir
         )
 
+        # Projects API
+        self.projects_api = ProjectsAPIHandler(
+            projects_dir=self.shared_data_dir.parent / 'projects',
+            config_dir=self.config_dir
+        )
+
         # AI subsystem (RILEY)
         self.active_rileys = {}
         self.ai_agents_config = self._load_ai_config()
@@ -106,6 +113,7 @@ class WebServer:
         # Subsystem APIs
         self.app.register_blueprint(self.ros_api.blueprint, url_prefix='/api/ros2')
         self.app.register_blueprint(self.riley_api.blueprint, url_prefix='/api/ai/riley')
+        self.app.register_blueprint(self.projects_api.blueprint, url_prefix='/api/projects')
 
         # Legacy routes for compatibility
         self._register_legacy_routes()
@@ -129,6 +137,14 @@ class WebServer:
         @self.app.route('/api/tracking_data')
         def api_tracking_data():
             return self.tracking_api.get_tracking_data()
+
+        @self.app.route('/api/locations')
+        def api_locations():
+            return self.config_api.get_locations()
+
+        @self.app.route('/api/robot-types')
+        def api_robot_types():
+            return self.config_api.get_robot_types()
 
     def _register_static_routes(self):
         """Register static file routes from server_config.yaml (via RoutesManager)"""

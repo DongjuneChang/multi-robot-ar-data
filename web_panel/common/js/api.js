@@ -124,19 +124,30 @@ class APIClient {
 
     /**
      * Toggle MoveIt
+     * @param {string} action - 'start' or 'stop'
+     * @param {string} mode - 'fake', 'real', or 'gazebo'
+     * @param {string} server - Optional server ID from network_config
      */
-    async toggleMoveIt(action, mode = 'fake') {
+    async toggleMoveIt(action, mode = 'fake', server = null) {
+        const body = { mode };
+        if (server) body.server = server;
         return await this.request(`/api/ros2/moveit/${action}`, {
             method: 'POST',
-            body: JSON.stringify({ mode })
+            body: JSON.stringify(body)
         });
     }
 
     /**
      * Toggle Controller
+     * @param {string} action - 'start' or 'stop'
+     * @param {string} server - Optional server ID from network_config
      */
-    async toggleController(action) {
-        return await this.request(`/api/ros2/controller/${action}`, { method: 'POST' });
+    async toggleController(action, server = null) {
+        const options = { method: 'POST' };
+        if (server) {
+            options.body = JSON.stringify({ server });
+        }
+        return await this.request(`/api/ros2/controller/${action}`, options);
     }
 
     /**
@@ -196,16 +207,26 @@ class APIClient {
 
     /**
      * Start path planning
+     * @param {string} server - Optional server ID from network_config
      */
-    async startPathPlanning() {
-        return await this.request('/api/ros2/path/start', { method: 'POST' });
+    async startPathPlanning(server = null) {
+        const options = { method: 'POST' };
+        if (server) {
+            options.body = JSON.stringify({ server });
+        }
+        return await this.request('/api/ros2/path/start', options);
     }
 
     /**
      * Stop path planning
+     * @param {string} server - Optional server ID from network_config
      */
-    async stopPathPlanning() {
-        return await this.request('/api/ros2/path/stop', { method: 'POST' });
+    async stopPathPlanning(server = null) {
+        const options = { method: 'POST' };
+        if (server) {
+            options.body = JSON.stringify({ server });
+        }
+        return await this.request('/api/ros2/path/stop', options);
     }
 
     // ==================== Pattern Test ====================

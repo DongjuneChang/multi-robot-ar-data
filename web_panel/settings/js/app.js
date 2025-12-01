@@ -1,67 +1,132 @@
 /**
- * Settings Panel
- * 부모 프레임(robot_control)에서 선택된 로봇 정보를 받아서 설정 표시
+ * Settings Panel - Tab-based Robot Configuration
+ * Each robot has its own tab with: QR Info, Config, Foxglove, AR Device, Admittance
  */
 
 // State
-let currentConfig = null;
+let robots = [];
+let robotConfigs = {};
+let robotQRs = {};
 let selectedRobot = null;
 let foxgloveConnected = false;
+
+// Project State
+let currentProject = null;
+let showAllRobots = false;
+
+// ==================== Project Loading ====================
+
+function loadCurrentProject() {
+    const projectJson = sessionStorage.getItem('currentProject');
+    if (projectJson) {
+        try {
+            currentProject = JSON.parse(projectJson);
+            console.log('[Settings] Loaded project:', currentProject.name || currentProject.id);
+            return currentProject;
+        } catch (e) {
+            console.warn('[Settings] Failed to parse project:', e);
+        }
+    }
+    return null;
+}
+
+function getProjectRobots() {
+    if (!currentProject || !currentProject.robots) return [];
+    return currentProject.robots.map(r => ({
+        type: r.type,
+        namespace: r.namespace,
+        mode: r.mode
+    }));
+}
+
+function applyProjectSettings() {
+    if (!currentProject) return;
+
+    // Apply server from project
+    if (currentProject.server?.ros2_server) {
+        const serverSelect = document.getElementById('ros-server');
+        if (serverSelect) {
+            serverSelect.value = currentProject.server.ros2_server;
+            onServerChange();
+            console.log('[Settings] Applied project server:', currentProject.server.ros2_server);
+        }
+    }
+
+    // Apply mode from first robot (if available)
+    const projectRobots = getProjectRobots();
+    if (projectRobots.length > 0) {
+        const mode = projectRobots[0].mode?.toLowerCase() || 'fake';
+        const modeRadio = document.querySelector(`input[name="mode"][value="${mode}"]`);
+        if (modeRadio) {
+            modeRadio.checked = true;
+            sessionStorage.setItem('systemMode', mode);
+            console.log('[Settings] Applied project mode:', mode);
+        }
+    }
+}
 
 // ==================== Initialization ====================
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('[Settings] Initializing...');
+    console.log('[Settings] Initializing tab-based Robot Settings...');
 
-    // 서버 정보 표시
-    updateServerInfo();
+    // Load current project from session
+    loadCurrentProject();
 
-    // Robot & Server 선택 로드
-    await loadRobotServerOptions();
+    // Cache server list first (for per-robot connection settings)
+    await cacheServerList();
 
-    // 부모 프레임에서 로봇 정보 가져오기
-    await loadRobotFromParent();
+    // Load server options (for global/default display)
+    await loadServerOptions();
 
-    // 슬라이더 이벤트 초기화
-    initSliders();
+    // Apply project settings if available
+    applyProjectSettings();
 
-    // 버튼 이벤트 초기화
-    initButtons();
+    // Load robots and create tabs
+    await loadRobotsAndCreateTabs();
 
-    // System Mode 초기화
+    // Init mode selection (global default)
     initModeSelection();
 
-    // Foxglove 이벤트 초기화
-    initFoxglove();
-
-    // 주기적 업데이트
+    // Periodic updates
     setInterval(updateTimestamp, 1000);
 
-    // 로봇 변경 감지 (robot_control에서 변경 시)
-    setInterval(checkRobotChange, 1000);
+    // Add project indicator to header if project loaded
+    if (currentProject) {
+        addProjectIndicator();
+    }
 
     console.log('[Settings] Initialized');
 });
 
-// ==================== Robot & Server Selection ====================
+function addProjectIndicator() {
+    const header = document.querySelector('.global-settings');
+    if (!header || document.getElementById('project-indicator')) return;
 
-async function loadRobotServerOptions() {
+    const indicator = document.createElement('div');
+    indicator.id = 'project-indicator';
+    indicator.className = 'global-item';
+    indicator.innerHTML = `
+        <span class="label">Project:</span>
+        <span class="value" style="color: #4CAF50; font-weight: bold;">${currentProject.name || currentProject.id}</span>
+        <label style="margin-left: 10px;">
+            <input type="checkbox" id="show-all-robots" ${showAllRobots ? 'checked' : ''}>
+            Show All
+        </label>
+    `;
+    header.appendChild(indicator);
+
+    // Toggle handler
+    document.getElementById('show-all-robots').addEventListener('change', async (e) => {
+        showAllRobots = e.target.checked;
+        await loadRobotsAndCreateTabs();
+    });
+}
+
+// ==================== Server Selection ====================
+
+async function loadServerOptions() {
     try {
-        // 로봇 목록 로드
-        const robotsResp = await api.getRobots();
-        const robotSelect = document.getElementById('robot-type');
-
-        if (robotsResp.robots && robotsResp.robots.length > 0) {
-            robotSelect.innerHTML = '';
-            for (const robot of robotsResp.robots) {
-                const option = document.createElement('option');
-                option.value = robot;
-                option.textContent = robot;
-                robotSelect.appendChild(option);
-            }
-        }
-
-        // 서버 목록 로드 (network_config.yaml에서)
         const networkConfig = await api.getNetworkConfig();
         const serverSelect = document.getElementById('ros-server');
 
@@ -80,34 +145,16 @@ async function loadRobotServerOptions() {
             }
         }
 
-        // 이벤트 리스너
-        robotSelect.addEventListener('change', onRobotChange);
         serverSelect.addEventListener('change', onServerChange);
 
-        // 저장된 값 복원
-        const storedRobot = sessionStorage.getItem('selectedRobot');
+        // Restore saved value
         const storedServer = sessionStorage.getItem('selectedServer');
-
-        if (storedRobot) robotSelect.value = storedRobot;
         if (storedServer) serverSelect.value = storedServer;
 
-        // 서버 정보 업데이트
         onServerChange();
 
     } catch (e) {
-        console.error('[Settings] Failed to load robot/server options:', e);
-    }
-}
-
-async function onRobotChange() {
-    const robotSelect = document.getElementById('robot-type');
-    const robot = robotSelect.value;
-
-    if (robot) {
-        sessionStorage.setItem('selectedRobot', robot);
-        selectedRobot = robot;
-        await loadRobotConfig(robot);
-        log(`[Settings] Robot changed to: ${robot}`);
+        console.error('[Settings] Failed to load server options:', e);
     }
 }
 
@@ -121,456 +168,703 @@ function onServerChange() {
 
         document.getElementById('connection-ip').textContent = host;
         document.getElementById('connection-port').textContent = port;
-        document.getElementById('foxglove-url').textContent = `ws://${host}:8765`;
 
         sessionStorage.setItem('selectedServer', serverSelect.value);
         sessionStorage.setItem('rosServerHost', host);
         sessionStorage.setItem('rosServerPort', port);
 
-        log(`[Settings] Server changed to: ${serverSelect.value} (${host}:${port})`);
+        log(`[Settings] Server: ${serverSelect.value} (${host}:${port})`);
     }
 }
 
-function getSelectedMode() {
-    const modeRadios = document.querySelectorAll('input[name="mode"]');
-    for (const radio of modeRadios) {
-        if (radio.checked) return radio.value;
-    }
-    return 'fake';
+function getSelectedServer() {
+    return document.getElementById('ros-server')?.value || null;
 }
 
-/**
- * Initialize mode radio buttons to save to sessionStorage
- */
+function getServerHost() {
+    const serverSelect = document.getElementById('ros-server');
+    return serverSelect?.selectedOptions[0]?.dataset.host || 'localhost';
+}
+
+// ==================== Mode Selection ====================
+
 function initModeSelection() {
     const modeRadios = document.querySelectorAll('input[name="mode"]');
-
-    // Restore saved mode
     const savedMode = sessionStorage.getItem('systemMode') || 'fake';
+
     modeRadios.forEach(radio => {
         if (radio.value === savedMode) radio.checked = true;
-    });
-
-    // Save on change
-    modeRadios.forEach(radio => {
         radio.addEventListener('change', () => {
             sessionStorage.setItem('systemMode', radio.value);
-            log(`[Settings] System mode changed to: ${radio.value}`);
+            log(`[Settings] Mode: ${radio.value}`);
         });
     });
 }
 
-/**
- * robot_control에서 로봇이 바뀌었는지 체크
- */
-async function checkRobotChange() {
-    const storedRobot = sessionStorage.getItem('selectedRobot');
-    if (storedRobot && storedRobot !== selectedRobot) {
-        console.log(`[Settings] Robot changed: ${selectedRobot} -> ${storedRobot}`);
-        selectedRobot = storedRobot;
-        await loadRobotConfig(selectedRobot);
-    }
-}
+// ==================== Robot Tabs ====================
 
-// ==================== Server & Connection Info ====================
+// Manufacturer display names and order
+const MANUFACTURER_INFO = {
+    'UFACTORY': { displayName: 'UFACTORY', order: 1 },
+    'Universal Robots': { displayName: 'Universal Robots', order: 2 },
+    'KUKA': { displayName: 'KUKA', order: 3 },
+    'Franka Emika': { displayName: 'Franka', order: 4 },
+    'Kinova': { displayName: 'Kinova', order: 5 }
+};
 
-function updateServerInfo() {
-    const host = window.location.hostname || 'localhost';
-    const port = window.location.port || '5000';
+// Store robot-manufacturer mapping and UI state
+let robotManufacturers = {};
+let expandedGroups = {};
 
-    // Update connection info (use existing HTML element IDs)
-    const ipEl = document.getElementById('connection-ip');
-    const portEl = document.getElementById('connection-port');
-    const foxgloveEl = document.getElementById('foxglove-url');
-
-    if (ipEl) ipEl.textContent = host;
-    if (portEl) portEl.textContent = port;
-    if (foxgloveEl) foxgloveEl.textContent = `ws://${host}:8765`;
-
-    // Update status bar
-    const statusEl = document.getElementById('config-status');
-    if (statusEl) statusEl.textContent = 'Ready';
-}
-
-async function checkApiStatus() {
-    const statusEl = document.getElementById('tcp-status');
-    const dotEl = document.getElementById('tcp-status-dot');
-
+async function loadRobotsAndCreateTabs() {
     try {
-        const response = await fetch('/api/status');
-        if (response.ok) {
-            if (statusEl) statusEl.textContent = 'Connected';
-            if (dotEl) dotEl.className = 'status-dot connected';
+        const resp = await api.getRobots();
+        let allRobots = resp.robots || [];
+
+        if (allRobots.length === 0) {
+            document.getElementById('robot-tabs').innerHTML = '<div class="tab-error">No robots found</div>';
+            return;
         }
-    } catch (e) {
-        if (statusEl) statusEl.textContent = 'Disconnected';
-        if (dotEl) dotEl.className = 'status-dot disconnected';
-    }
-}
 
-// ==================== Load Robot Config ====================
-
-async function loadRobotFromParent() {
-    // 방법 1: sessionStorage에서 로봇 정보 가져오기
-    const storedRobot = sessionStorage.getItem('selectedRobot');
-
-    // 방법 2: 부모 iframe에서 state 가져오기
-    let robotFromParent = null;
-    try {
-        if (window.parent && window.parent !== window) {
-            const parentFrame = window.parent.document.getElementById('panel-frame');
-            if (parentFrame && parentFrame.contentWindow && parentFrame.contentWindow.state) {
-                robotFromParent = parentFrame.contentWindow.state.selectedRobot;
-            }
-        }
-    } catch (e) {
-        console.log('[Settings] Cannot access parent frame:', e.message);
-    }
-
-    selectedRobot = robotFromParent || storedRobot || 'lite6';  // 기본값: lite6
-
-    console.log(`[Settings] Loading robot: ${selectedRobot}`);
-    document.getElementById('config-status').textContent = `Loading ${selectedRobot}...`;
-
-    await loadRobotConfig(selectedRobot);
-}
-
-async function loadRobotConfig(robotModel) {
-    try {
-        // ConfigLoader 사용해서 config 로드
-        if (typeof window.ConfigLoader !== 'undefined') {
-            const baseUrl = getConfigBaseUrl();
-            currentConfig = await window.ConfigLoader.loadRobotConfig(robotModel, {
-                baseUrl: baseUrl,
-                convertToRadians: false  // 표시용이므로 degrees 유지
-            });
+        // Filter by project if project loaded and not showing all
+        const projectRobots = getProjectRobots();
+        if (currentProject && !showAllRobots && projectRobots.length > 0) {
+            const projectRobotTypes = projectRobots.map(r => r.type);
+            robots = allRobots.filter(r => projectRobotTypes.includes(r));
+            console.log('[Settings] Filtered to project robots:', robots);
         } else {
-            // ConfigLoader 없으면 직접 로드
-            currentConfig = await loadConfigDirect(robotModel);
+            robots = allRobots;
         }
 
-        // UI 업데이트
-        updateRobotDisplay(currentConfig);
-        document.getElementById('config-status').textContent = `Loaded: ${robotModel}`;
-        console.log(`[Settings] Config loaded for ${robotModel}`);
+        if (robots.length === 0) {
+            document.getElementById('robot-tabs').innerHTML = '<div class="tab-error">No robots in project</div>';
+            return;
+        }
 
-    } catch (error) {
-        console.error('[Settings] Failed to load config:', error);
-        document.getElementById('config-status').textContent = `Error: ${error.message}`;
-    }
-}
+        // Show loading state
+        document.getElementById('robot-tabs').innerHTML = '<div class="tab-loading">Loading robots...</div>';
 
-function getConfigBaseUrl() {
-    // settings 패널 위치: web_panel/settings/
-    // config 위치: config/network_robots/
-    return '../../config/network_robots';
-}
-
-async function loadConfigDirect(robotModel) {
-    const baseUrl = getConfigBaseUrl();
-
-    // _defaults.yaml 로드
-    const defaultsResp = await fetch(`${baseUrl}/_defaults.yaml`);
-    if (!defaultsResp.ok) {
-        throw new Error(`Failed to load _defaults.yaml: ${defaultsResp.status}`);
-    }
-    const defaultsText = await defaultsResp.text();
-    const defaults = jsyaml.load(defaultsText);
-
-    // override 로드
-    const overrideResp = await fetch(`${baseUrl}/overrides/${robotModel}.yaml`);
-    if (!overrideResp.ok) {
-        throw new Error(`Failed to load ${robotModel}.yaml: ${overrideResp.status}`);
-    }
-    const overrideText = await overrideResp.text();
-    const override = jsyaml.load(overrideText);
-
-    // Deep merge
-    return deepMerge(defaults, override);
-}
-
-function deepMerge(base, override) {
-    const result = JSON.parse(JSON.stringify(base));
-    for (const key in override) {
-        if (override.hasOwnProperty(key)) {
-            if (result[key] && typeof result[key] === 'object' && typeof override[key] === 'object'
-                && !Array.isArray(result[key]) && !Array.isArray(override[key])) {
-                result[key] = deepMerge(result[key], override[key]);
-            } else {
-                result[key] = JSON.parse(JSON.stringify(override[key]));
+        // Load manufacturer info for each robot (in parallel)
+        const configPromises = robots.map(async (robot) => {
+            try {
+                const config = await api.getRobotConfig(robot);
+                robotConfigs[robot] = config;
+                robotManufacturers[robot] = config.robot?.manufacturer || 'Unknown';
+            } catch (e) {
+                console.warn(`[Settings] Could not load config for ${robot}:`, e);
+                robotManufacturers[robot] = 'Unknown';
             }
+        });
+        await Promise.all(configPromises);
+
+        // Group robots by manufacturer
+        const groups = groupRobotsByManufacturer(robots);
+
+        // Load first robot or stored selection
+        const storedRobot = sessionStorage.getItem('selectedRobot');
+        const initialRobot = (storedRobot && robots.includes(storedRobot)) ? storedRobot : robots[0];
+
+        // Expand the group containing the initial robot
+        const initialManufacturer = robotManufacturers[initialRobot];
+        if (initialManufacturer) {
+            expandedGroups[initialManufacturer] = true;
+        }
+
+        // Render grouped tabs
+        renderGroupedTabs(groups);
+
+        await selectRobotTab(initialRobot);
+
+    } catch (e) {
+        console.error('[Settings] Failed to load robots:', e);
+        document.getElementById('robot-tabs').innerHTML = '<div class="tab-error">Failed to load robots</div>';
+    }
+}
+
+function groupRobotsByManufacturer(robotList) {
+    const groups = {};
+
+    for (const robot of robotList) {
+        const manufacturer = robotManufacturers[robot] || 'Unknown';
+        if (!groups[manufacturer]) {
+            groups[manufacturer] = [];
+        }
+        groups[manufacturer].push(robot);
+    }
+
+    // Sort groups by defined order
+    const sortedGroups = {};
+    const sortedKeys = Object.keys(groups).sort((a, b) => {
+        const orderA = MANUFACTURER_INFO[a]?.order || 99;
+        const orderB = MANUFACTURER_INFO[b]?.order || 99;
+        return orderA - orderB;
+    });
+
+    for (const key of sortedKeys) {
+        sortedGroups[key] = groups[key];
+    }
+
+    return sortedGroups;
+}
+
+function renderGroupedTabs(groups) {
+    const tabsContainer = document.getElementById('robot-tabs');
+    tabsContainer.innerHTML = '';
+
+    for (const [manufacturer, robotList] of Object.entries(groups)) {
+        const isExpanded = expandedGroups[manufacturer] === true;
+        const displayName = MANUFACTURER_INFO[manufacturer]?.displayName || manufacturer;
+
+        // Create group container
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'tab-group';
+        groupDiv.dataset.manufacturer = manufacturer;
+
+        // Create group header (clickable)
+        const groupHeader = document.createElement('button');
+        groupHeader.className = `tab-group-header ${isExpanded ? 'expanded' : ''}`;
+        groupHeader.innerHTML = `
+            <span class="group-icon">${isExpanded ? '▼' : '▶'}</span>
+            <span class="group-name">${displayName}</span>
+            <span class="group-count">(${robotList.length})</span>
+        `;
+        groupHeader.addEventListener('click', () => toggleGroup(manufacturer));
+        groupDiv.appendChild(groupHeader);
+
+        // Create robot tabs container (collapsible)
+        const robotsDiv = document.createElement('div');
+        robotsDiv.className = `tab-group-robots ${isExpanded ? 'expanded' : ''}`;
+
+        for (const robot of robotList) {
+            const tab = document.createElement('button');
+            tab.className = `robot-tab ${selectedRobot === robot ? 'active' : ''}`;
+            tab.textContent = robot;
+            tab.dataset.robot = robot;
+            tab.addEventListener('click', () => selectRobotTab(robot));
+            robotsDiv.appendChild(tab);
+        }
+
+        groupDiv.appendChild(robotsDiv);
+        tabsContainer.appendChild(groupDiv);
+    }
+}
+
+function toggleGroup(manufacturer) {
+    expandedGroups[manufacturer] = !expandedGroups[manufacturer];
+    const groups = groupRobotsByManufacturer(robots);
+    renderGroupedTabs(groups);
+}
+
+async function selectRobotTab(robotType) {
+    // Update tab active state
+    document.querySelectorAll('.robot-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.robot === robotType);
+    });
+
+    selectedRobot = robotType;
+    sessionStorage.setItem('selectedRobot', robotType);
+    document.getElementById('config-status').textContent = `Loading ${robotType}...`;
+
+    // Load robot data if not cached
+    if (!robotConfigs[robotType]) {
+        try {
+            robotConfigs[robotType] = await api.getRobotConfig(robotType);
+        } catch (e) {
+            console.error(`[Settings] Failed to load config for ${robotType}:`, e);
         }
     }
-    return result;
+
+    if (!robotQRs[robotType]) {
+        try {
+            const qrResp = await api.request(`/api/robots/${robotType}/qr`);
+            robotQRs[robotType] = qrResp.qr_codes || {};
+        } catch (e) {
+            console.error(`[Settings] Failed to load QR for ${robotType}:`, e);
+            robotQRs[robotType] = {};
+        }
+    }
+
+    // Render robot panel
+    renderRobotPanel(robotType);
+    document.getElementById('config-status').textContent = `Loaded: ${robotType}`;
 }
 
-// ==================== Update Robot Display ====================
+// ==================== Robot Panel Rendering ====================
 
-function updateRobotDisplay(config) {
-    if (!config) return;
+function renderRobotPanel(robotType) {
+    const config = robotConfigs[robotType] || {};
+    const qrCodes = robotQRs[robotType] || {};
 
-    // Robot Header
-    document.getElementById('robot-name').textContent = config.robot?.model?.toUpperCase() || '-';
-    document.getElementById('robot-manufacturer').textContent = config.robot?.manufacturer || '-';
+    const container = document.getElementById('tab-content');
+    container.innerHTML = `
+        <div class="robot-panel" data-robot="${robotType}">
+            <!-- Robot Header -->
+            <div class="robot-header">
+                <h2>${robotType.toUpperCase()}</h2>
+                <span class="manufacturer">${config.robot?.manufacturer || '-'}</span>
+            </div>
 
-    // DOF
-    document.getElementById('robot-dof').textContent = config.robot?.dof || '-';
+            <div class="panel-grid">
+                <!-- QR Code Info -->
+                <section class="panel qr-panel">
+                    <h3>QR Mapping</h3>
+                    ${renderQRInfo(qrCodes)}
+                </section>
 
-    // Joint Table
-    updateJointTable(config);
+                <!-- Connection Settings (Per-Robot) -->
+                <section class="panel connection-panel">
+                    <h3>Connection Settings</h3>
+                    ${renderConnectionSettings(robotType)}
+                </section>
 
-    // Frame Hierarchy
-    updateFrameDisplay(config);
+                <!-- Robot Configuration -->
+                <section class="panel config-panel">
+                    <h3>Robot Configuration</h3>
+                    <div class="info-row">
+                        <span class="info-label">DOF:</span>
+                        <span>${config.robot?.dof || '-'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Base Frame:</span>
+                        <span class="mono">${getBaseFrame(config)}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">EEF Frame:</span>
+                        <span class="mono">${getEEFFrame(config)}</span>
+                    </div>
+                    ${renderJointTable(config)}
+                </section>
 
-    // Named Frames
-    updateNamedFrames(config);
+                <!-- Foxglove Bridge -->
+                <section class="panel foxglove-panel">
+                    <h3>Foxglove Bridge</h3>
+                    <div class="connection-info">
+                        <span class="label">WebSocket:</span>
+                        <span class="value" id="foxglove-url">ws://${getServerHost()}:8765</span>
+                    </div>
+                    <div class="connection-info">
+                        <span class="label">Status:</span>
+                        <span class="status-dot disconnected" id="foxglove-status-dot"></span>
+                        <span id="foxglove-status">Disconnected</span>
+                    </div>
+                    <div class="button-row">
+                        <button id="btn-foxglove-connect" class="btn btn-primary" onclick="connectFoxglove()">Connect</button>
+                        <button id="btn-foxglove-disconnect" class="btn btn-secondary" onclick="disconnectFoxglove()" disabled>Disconnect</button>
+                    </div>
+                    <div class="foxglove-topics" id="foxglove-topics">
+                        <div class="no-data">Not connected</div>
+                    </div>
+                </section>
 
-    // Admittance
-    updateAdmittanceDisplay(config);
+                <!-- AR Device -->
+                <section class="panel device-panel">
+                    <h3>AR Device</h3>
+                    <div class="button-row">
+                        <button id="btn-tcp-endpoint" class="btn btn-primary" data-running="false" onclick="toggleTcpEndpoint()">TCP Endpoint</button>
+                        <button id="btn-device-api" class="btn btn-primary" data-running="false" onclick="toggleDeviceApi()">Device API</button>
+                    </div>
+                    <div class="connection-info">
+                        <span class="label">TCP Status:</span>
+                        <span class="status-dot disconnected" id="tcp-status-dot"></span>
+                        <span id="tcp-status">Stopped</span>
+                    </div>
+                    <div class="button-row">
+                        <button id="btn-scan-devices" class="btn btn-secondary" onclick="scanDevices()">Scan Devices</button>
+                    </div>
+                    <div class="device-list" id="device-list">
+                        <p class="no-devices">No devices scanned</p>
+                    </div>
+                </section>
 
-    // ROS2 Visualization
-    updateRos2Display(config);
+                <!-- Admittance Control -->
+                <section class="panel admittance-panel">
+                    <h3>Admittance Control</h3>
+                    ${renderAdmittanceControl(config)}
+                </section>
+
+                <!-- F/T Sensor -->
+                <section class="panel ft-sensor-panel">
+                    <h3>F/T Sensor</h3>
+                    ${renderFTSensor(config)}
+                </section>
+            </div>
+
+            <!-- Actions -->
+            <div class="panel-actions">
+                <button class="btn btn-primary" onclick="applySettings()">Apply Settings</button>
+                <button class="btn btn-secondary" onclick="resetSettings()">Reset to Defaults</button>
+            </div>
+        </div>
+    `;
 }
 
-function updateJointTable(config) {
-    const tbody = document.getElementById('joint-table-body');
+function renderQRInfo(qrCodes) {
+    const entries = Object.entries(qrCodes);
+    if (entries.length === 0) {
+        return '<div class="no-data">No QR codes assigned</div>';
+    }
 
+    let html = '';
+    for (const [qrId, info] of entries) {
+        html += `
+            <div class="qr-item">
+                <div class="qr-id">${qrId}</div>
+                <div class="qr-details">
+                    <div class="info-row">
+                        <span class="info-label">Location:</span>
+                        <input type="text" class="readonly-input" value="${info.location || '-'}" readonly>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Mode:</span>
+                        <input type="text" class="readonly-input" value="${info.mode || 'standalone'}" readonly>
+                    </div>
+                    ${info.teleoperation_pair ? `
+                    <div class="info-row">
+                        <span class="info-label">Pair:</span>
+                        <input type="text" class="readonly-input" value="${info.teleoperation_pair}" readonly>
+                    </div>` : ''}
+                </div>
+            </div>
+        `;
+    }
+    return html;
+}
+
+function renderJointTable(config) {
     if (!config.joints?.names || config.joints.names.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5">No joint data</td></tr>';
-        return;
+        return '<div class="no-data">No joint data</div>';
     }
 
     const names = config.joints.names;
-    const zero = config.joints.zero || [];
-    const home = config.joints.home || [];
+    const positions = config.joints.positions || {};
+    const zero = positions.zero || [];
+    const home = positions.home || [];
     const limits = config.joints.limits || {};
 
-    let html = '';
+    let html = `
+        <table class="joint-table">
+            <thead>
+                <tr>
+                    <th>Joint</th>
+                    <th>Zero</th>
+                    <th>Home</th>
+                    <th>Min</th>
+                    <th>Max</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
     for (let i = 0; i < names.length; i++) {
         const name = names[i];
         const limit = limits[name] || [-360, 360];
-
-        html += `<tr>
-            <td>${name}</td>
-            <td>${zero[i] !== undefined ? zero[i] : '-'}</td>
-            <td>${home[i] !== undefined ? home[i] : '-'}</td>
-            <td>${limit[0]}</td>
-            <td>${limit[1]}</td>
-        </tr>`;
+        html += `
+            <tr>
+                <td>${name}</td>
+                <td>${zero[i] !== undefined ? zero[i] : '-'}</td>
+                <td>${home[i] !== undefined ? home[i] : '-'}</td>
+                <td>${limit[0]}</td>
+                <td>${limit[1]}</td>
+            </tr>
+        `;
     }
 
-    tbody.innerHTML = html;
+    html += '</tbody></table>';
+    return html;
 }
 
-function updateFrameDisplay(config) {
-    const frameHierarchy = config?.frame_hierarchy;
-    if (!frameHierarchy || typeof frameHierarchy !== 'object') {
-        document.getElementById('base-frame').textContent = '-';
-        document.getElementById('eef-frame').textContent = '-';
-        document.getElementById('frame-list').innerHTML = 'No frame data';
+function renderAdmittanceControl(config) {
+    const admittance = config.admittance || {};
+    const dynamics = admittance.dynamics || {};
+    const inertia = dynamics.inertia || [10.0, 10.0, 10.0];
+    const damping = dynamics.damping || [3.0, 3.0, 3.0];
+    const stiffness = dynamics.stiffness_p || [0.0, 0.0, 0.0];
+
+    return `
+        <div class="control-group">
+            <label><input type="checkbox" id="admittance-enabled" checked> Enable Admittance Control</label>
+        </div>
+        <div class="admittance-params">
+            <div class="param-group">
+                <label>Inertia [x, y, z] (kg):</label>
+                <div class="xyz-inputs">
+                    <input type="number" id="mass-x" step="0.1" value="${inertia[0]}">
+                    <input type="number" id="mass-y" step="0.1" value="${inertia[1]}">
+                    <input type="number" id="mass-z" step="0.1" value="${inertia[2]}">
+                </div>
+            </div>
+            <div class="param-group">
+                <label>Damping [x, y, z]:</label>
+                <div class="xyz-inputs">
+                    <input type="number" id="damping-x" step="0.1" value="${damping[0]}">
+                    <input type="number" id="damping-y" step="0.1" value="${damping[1]}">
+                    <input type="number" id="damping-z" step="0.1" value="${damping[2]}">
+                </div>
+            </div>
+            <div class="param-group">
+                <label>Stiffness [x, y, z]:</label>
+                <div class="xyz-inputs">
+                    <input type="number" id="stiffness-x" step="0.1" value="${stiffness[0]}">
+                    <input type="number" id="stiffness-y" step="0.1" value="${stiffness[1]}">
+                    <input type="number" id="stiffness-z" step="0.1" value="${stiffness[2]}">
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderFTSensor(config) {
+    const ftSensor = config.ft_sensor || {};
+    const forceThreshold = ftSensor.force_threshold || [50.0, 50.0, 50.0];
+    const torqueThreshold = ftSensor.torque_threshold || [10.0, 10.0, 10.0];
+    const enabled = ftSensor.enabled !== false;
+
+    return `
+        <div class="control-group">
+            <label><input type="checkbox" id="ft-sensor-enabled" ${enabled ? 'checked' : ''}> Enable F/T Sensor</label>
+        </div>
+        <div class="ft-sensor-params">
+            <div class="param-group">
+                <label>Force Threshold [x, y, z] (N):</label>
+                <div class="xyz-inputs">
+                    <input type="number" id="force-x" step="1" value="${forceThreshold[0]}">
+                    <input type="number" id="force-y" step="1" value="${forceThreshold[1]}">
+                    <input type="number" id="force-z" step="1" value="${forceThreshold[2]}">
+                </div>
+            </div>
+            <div class="param-group">
+                <label>Torque Threshold [x, y, z] (Nm):</label>
+                <div class="xyz-inputs">
+                    <input type="number" id="torque-x" step="0.5" value="${torqueThreshold[0]}">
+                    <input type="number" id="torque-y" step="0.5" value="${torqueThreshold[1]}">
+                    <input type="number" id="torque-z" step="0.5" value="${torqueThreshold[2]}">
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function getBaseFrame(config) {
+    const networkFrames = config?.frame_hierarchy?.network_frames || {};
+    for (const [key, value] of Object.entries(networkFrames)) {
+        if (key.includes('base')) return value.ros_frame || '-';
+    }
+    return '-';
+}
+
+function getEEFFrame(config) {
+    const networkFrames = config?.frame_hierarchy?.network_frames || {};
+    for (const [key, value] of Object.entries(networkFrames)) {
+        if (key.includes('eef')) return value.ros_frame || '-';
+    }
+    return '-';
+}
+
+// ==================== Connection Settings (Per-Robot) ====================
+
+function renderConnectionSettings(robotType) {
+    // Get stored values for this robot, or use defaults
+    const storedSettings = getRobotConnectionSettings(robotType);
+    const servers = getServerList();
+
+    let serverOptions = '';
+    for (const [name, info] of Object.entries(servers)) {
+        const selected = storedSettings.server === name ? 'selected' : '';
+        serverOptions += `<option value="${name}" ${selected}>${name} (${info.host}:${info.port})</option>`;
+    }
+
+    return `
+        <div class="control-group">
+            <label for="robot-server-${robotType}">ROS2 Server:</label>
+            <select id="robot-server-${robotType}" class="robot-setting" data-robot="${robotType}" data-field="server" onchange="saveRobotConnectionSetting('${robotType}', 'server', this.value)">
+                ${serverOptions}
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Mode:</label>
+            <div class="mode-group-inline">
+                <label><input type="radio" name="robot-mode-${robotType}" value="fake" ${storedSettings.mode === 'fake' ? 'checked' : ''} onchange="saveRobotConnectionSetting('${robotType}', 'mode', 'fake')"> Fake</label>
+                <label><input type="radio" name="robot-mode-${robotType}" value="real" ${storedSettings.mode === 'real' ? 'checked' : ''} onchange="saveRobotConnectionSetting('${robotType}', 'mode', 'real')"> Real</label>
+                <label><input type="radio" name="robot-mode-${robotType}" value="gazebo" ${storedSettings.mode === 'gazebo' ? 'checked' : ''} onchange="saveRobotConnectionSetting('${robotType}', 'mode', 'gazebo')"> Gazebo</label>
+            </div>
+        </div>
+        <div class="control-group">
+            <label for="robot-domain-${robotType}">ROS_DOMAIN_ID:</label>
+            <input type="number" id="robot-domain-${robotType}" min="0" max="232" value="${storedSettings.ros_domain_id}"
+                   onchange="saveRobotConnectionSetting('${robotType}', 'ros_domain_id', this.value)">
+        </div>
+        <div class="control-group">
+            <label for="robot-namespace-${robotType}">Namespace:</label>
+            <input type="text" id="robot-namespace-${robotType}" value="${storedSettings.namespace}" placeholder="e.g., robot1"
+                   onchange="saveRobotConnectionSetting('${robotType}', 'namespace', this.value)">
+        </div>
+    `;
+}
+
+// Storage key for robot connection settings
+function getRobotConnectionKey(robotType) {
+    return `robotConnection_${robotType}`;
+}
+
+// Get stored connection settings for a robot
+function getRobotConnectionSettings(robotType) {
+    const stored = sessionStorage.getItem(getRobotConnectionKey(robotType));
+    if (stored) {
+        return JSON.parse(stored);
+    }
+    // Default values
+    return {
+        server: document.getElementById('ros-server')?.value || '',
+        mode: 'fake',
+        ros_domain_id: 0,
+        namespace: ''
+    };
+}
+
+// Save a single connection setting for a robot
+function saveRobotConnectionSetting(robotType, field, value) {
+    const settings = getRobotConnectionSettings(robotType);
+    settings[field] = field === 'ros_domain_id' ? parseInt(value) : value;
+    sessionStorage.setItem(getRobotConnectionKey(robotType), JSON.stringify(settings));
+    console.log(`[Settings] ${robotType}.${field} = ${value}`);
+}
+
+// Get server list from cached network config
+let cachedServers = {};
+function getServerList() {
+    return cachedServers;
+}
+
+// Cache servers after loading
+async function cacheServerList() {
+    try {
+        const networkConfig = await api.getNetworkConfig();
+        if (networkConfig) {
+            const parsed = typeof networkConfig === 'string' ? jsyaml.load(networkConfig) : networkConfig;
+            cachedServers = parsed.servers?.ros2 || {};
+        }
+    } catch (e) {
+        console.error('[Settings] Failed to cache server list:', e);
+    }
+}
+
+// ==================== Foxglove ====================
+
+function connectFoxglove() {
+    const host = getServerHost();
+    const port = 8765;
+
+    console.log(`[Settings] Connecting to Foxglove at ${host}:${port}`);
+
+    if (typeof foxglove === 'undefined') {
+        log('[Settings] Foxglove module not loaded', 'error');
         return;
     }
 
-    // Network frames (base, eef)
-    const networkFrames = frameHierarchy.network_frames || {};
-    let baseFrame = '-';
-    let eefFrame = '-';
-
-    for (const [key, value] of Object.entries(networkFrames)) {
-        if (key.includes('base')) {
-            baseFrame = value.ros_frame || '-';
-        } else if (key.includes('eef')) {
-            eefFrame = value.ros_frame || '-';
-        }
+    if (foxglove.connected) {
+        foxglove.disconnect();
     }
 
-    document.getElementById('base-frame').textContent = baseFrame;
-    document.getElementById('eef-frame').textContent = eefFrame;
+    foxglove.onConnect = () => {
+        foxgloveConnected = true;
+        document.getElementById('foxglove-status').textContent = 'Connected';
+        document.getElementById('foxglove-status-dot').className = 'status-dot connected';
+        document.getElementById('btn-foxglove-connect').disabled = true;
+        document.getElementById('btn-foxglove-disconnect').disabled = false;
+        log(`[Settings] Foxglove connected to ${host}:${port}`);
+        setTimeout(updateFoxgloveTopics, 500);
+    };
 
-    // Local frames - 배열 확인
-    const localFramesRaw = frameHierarchy.local_frames;
-    const localFrames = Array.isArray(localFramesRaw) ? localFramesRaw : [];
-    let frameHtml = '';
+    foxglove.onDisconnect = () => {
+        foxgloveConnected = false;
+        document.getElementById('foxglove-status').textContent = 'Disconnected';
+        document.getElementById('foxglove-status-dot').className = 'status-dot disconnected';
+        document.getElementById('btn-foxglove-connect').disabled = false;
+        document.getElementById('btn-foxglove-disconnect').disabled = true;
+        document.getElementById('foxglove-topics').innerHTML = '<div class="no-data">Not connected</div>';
+    };
 
-    // Network frames first
-    for (const key of Object.keys(networkFrames)) {
-        frameHtml += `<span class="frame-tag network">${key}</span>`;
-    }
+    foxglove.onError = (error) => {
+        console.error('[Settings] Foxglove error:', error);
+        document.getElementById('foxglove-status').textContent = 'Error';
+        document.getElementById('foxglove-status-dot').className = 'status-dot warning';
+        log(`[Settings] Foxglove failed: ${host}:${port}`, 'error');
+    };
 
-    // Local frames
-    for (const frame of localFrames) {
-        frameHtml += `<span class="frame-tag">${frame}</span>`;
-    }
-
-    document.getElementById('frame-list').innerHTML = frameHtml || 'No frames';
+    foxglove.connect(host, port);
 }
 
-function updateNamedFrames(config) {
-    const namedFrames = config.named_frames?.frames || {};
-
-    // Robot Origin
-    const robotOrigin = namedFrames.robot_origin?.position;
-    if (robotOrigin && Array.isArray(robotOrigin)) {
-        document.getElementById('robot-origin').textContent =
-            `[${robotOrigin.map(v => v.toFixed(3)).join(', ')}]`;
-    } else {
-        document.getElementById('robot-origin').textContent = '-';
-    }
-
-    // WorkFrame
-    const workFrame = namedFrames.WorkFrame?.position;
-    if (workFrame && Array.isArray(workFrame)) {
-        document.getElementById('workframe').textContent =
-            `[${workFrame.map(v => v.toFixed(3)).join(', ')}]`;
-    } else {
-        document.getElementById('workframe').textContent = '-';
+function disconnectFoxglove() {
+    if (typeof foxglove !== 'undefined') {
+        foxglove.disconnect();
     }
 }
 
-function updateAdmittanceDisplay(config) {
-    const admittance = config.admittance;
-    if (!admittance) return;
+function updateFoxgloveTopics() {
+    if (typeof foxglove === 'undefined') return;
 
-    // Enabled - admittance는 항상 enabled (dynamics 기반)
-    document.getElementById('admittance-enabled').checked = true;
+    const topics = foxglove.getAvailableTopics ? foxglove.getAvailableTopics() : [];
+    const container = document.getElementById('foxglove-topics');
 
-    // Inertia (이전의 Mass)
-    const inertia = admittance.dynamics?.inertia || [10.0, 10.0, 10.0];
-    document.getElementById('mass-x').value = inertia[0];
-    document.getElementById('mass-y').value = inertia[1];
-    document.getElementById('mass-z').value = inertia[2];
-
-    // Damping
-    const damping = admittance.dynamics?.damping || [3.0, 3.0, 3.0];
-    document.getElementById('damping-x').value = damping[0];
-    document.getElementById('damping-y').value = damping[1];
-    document.getElementById('damping-z').value = damping[2];
-
-    // Stiffness (stiffness_p 사용)
-    const stiffness = admittance.dynamics?.stiffness_p || [0.0, 0.0, 0.0];
-    document.getElementById('stiffness-x').value = stiffness[0];
-    document.getElementById('stiffness-y').value = stiffness[1];
-    document.getElementById('stiffness-z').value = stiffness[2];
-}
-
-function updateRos2Display(config) {
-    const ros2Viz = config.ros2_visualization;
-    if (ros2Viz) {
-        document.getElementById('ros2-reference-frame').textContent =
-            ros2Viz.reference_frame || '-';
+    if (topics.length === 0) {
+        container.innerHTML = '<div class="no-data">No topics available</div>';
+        return;
     }
 
-    const subscribeFrames = config.ros2?.subscribe_frames || [];
-    document.getElementById('subscribe-frame-count').textContent =
-        `${subscribeFrames.length} frames`;
-}
+    let html = '';
+    for (const topic of topics.slice(0, 15)) {
+        html += `<div class="topic-item">
+            <span class="topic-name">${topic.topic}</span>
+            <span class="topic-type">${topic.schemaName || '-'}</span>
+        </div>`;
+    }
 
-// ==================== Sliders ====================
+    if (topics.length > 15) {
+        html += `<div class="topic-item">... and ${topics.length - 15} more</div>`;
+    }
 
-function initSliders() {
-    // Pattern Size
-    const sizeSlider = document.getElementById('pattern-size');
-    const sizeValue = document.getElementById('pattern-size-value');
-    sizeSlider.addEventListener('input', () => {
-        sizeValue.textContent = parseFloat(sizeSlider.value).toFixed(2);
-    });
-
-    // Pattern Height
-    const heightSlider = document.getElementById('pattern-height');
-    const heightValue = document.getElementById('pattern-height-value');
-    heightSlider.addEventListener('input', () => {
-        heightValue.textContent = parseFloat(heightSlider.value).toFixed(2);
-    });
-
-    // Pattern Duration
-    const durationSlider = document.getElementById('pattern-duration');
-    const durationValue = document.getElementById('pattern-duration-value');
-    durationSlider.addEventListener('input', () => {
-        durationValue.textContent = parseFloat(durationSlider.value).toFixed(1);
-    });
-}
-
-// ==================== Buttons ====================
-
-function initButtons() {
-    document.getElementById('btn-apply').addEventListener('click', applySettings);
-    document.getElementById('btn-reset').addEventListener('click', resetSettings);
-
-    // ROS2 Services
-    document.getElementById('btn-tcp-endpoint').addEventListener('click', toggleTcpEndpoint);
-    document.getElementById('btn-device-api').addEventListener('click', toggleDeviceApi);
-    document.getElementById('btn-scan-devices').addEventListener('click', scanDevices);
+    container.innerHTML = html;
 }
 
 // ==================== ROS2 Services ====================
 
-/**
- * Get the selected ROS2 server ID from dropdown
- */
-function getSelectedServer() {
-    const serverSelect = document.getElementById('ros-server');
-    return serverSelect?.value || null;
-}
-
-/**
- * TCP Endpoint는 Unity 연결용이며 ROS2 Docker에서 실행됨
- * Web panel에서는 ROS2 서버에 요청만 전달
- * Foxglove Bridge를 통해 ROS2 연결 상태 확인 가능
- */
 async function toggleTcpEndpoint() {
     const btn = document.getElementById('btn-tcp-endpoint');
     const isRunning = btn.dataset.running === 'true';
     const action = isRunning ? 'stop' : 'start';
     const server = getSelectedServer();
-
-    // ROS2 서버 IP 가져오기
-    const serverSelect = document.getElementById('ros-server');
-    const selectedOption = serverSelect?.selectedOptions[0];
-    const host = selectedOption?.dataset.host || 'unknown';
-    const port = selectedOption?.dataset.port || '10000';
+    const host = getServerHost();
 
     try {
-        log(`[Settings] ${action === 'start' ? 'Starting' : 'Stopping'} TCP Endpoint on ${host}:${port}...`);
+        log(`[Settings] ${action === 'start' ? 'Starting' : 'Stopping'} TCP Endpoint on ${host}...`);
         const result = await api.toggleTcpEndpoint(action, server);
 
         if (result.status === 'started' || result.status === 'success') {
             btn.dataset.running = 'true';
-            btn.textContent = 'Stop TCP Endpoint';
-            btn.classList.remove('btn-primary');
-            btn.classList.add('btn-danger');
+            btn.textContent = 'Stop TCP';
+            btn.classList.replace('btn-primary', 'btn-danger');
             updateTcpStatus('Running', true);
-            log(`[Settings] TCP Endpoint started on ${host}:${port} (Unity 연결용)`);
+            log(`[Settings] TCP Endpoint started on ${host}`);
         } else if (result.status === 'stopped') {
             btn.dataset.running = 'false';
             btn.textContent = 'TCP Endpoint';
-            btn.classList.remove('btn-danger');
-            btn.classList.add('btn-primary');
+            btn.classList.replace('btn-danger', 'btn-primary');
             updateTcpStatus('Stopped', false);
             log('[Settings] TCP Endpoint stopped');
-        } else if (result.status === 'error') {
-            log(`[Settings] TCP Endpoint error: ${result.error || 'ROS2 서버 연결 실패'} - ROS2 Docker 실행 확인 필요`, 'error');
         } else {
-            log(`[Settings] TCP Endpoint response: ${JSON.stringify(result)}`);
+            log(`[Settings] TCP Endpoint: ${result.error || 'unknown'}`, 'error');
         }
     } catch (e) {
-        log(`[Settings] TCP Endpoint error: ${e.message} - ROS2 Docker (${host}:${port}) 실행 확인 필요`, 'error');
+        log(`[Settings] TCP Endpoint error: ${e.message}`, 'error');
     }
 }
 
-/**
- * Device API는 HoloLens/Quest 디바이스 스캔용
- * ROS2 Docker에서 실행됨
- */
 async function toggleDeviceApi() {
     const btn = document.getElementById('btn-device-api');
     const isRunning = btn.dataset.running === 'true';
     const action = isRunning ? 'stop' : 'start';
     const server = getSelectedServer();
-
-    // ROS2 서버 IP 가져오기
-    const serverSelect = document.getElementById('ros-server');
-    const selectedOption = serverSelect?.selectedOptions[0];
-    const host = selectedOption?.dataset.host || 'unknown';
+    const host = getServerHost();
 
     try {
         log(`[Settings] ${action === 'start' ? 'Starting' : 'Stopping'} Device API on ${host}...`);
@@ -578,23 +872,19 @@ async function toggleDeviceApi() {
 
         if (result.status === 'started' || result.status === 'success') {
             btn.dataset.running = 'true';
-            btn.textContent = 'Stop Device API';
-            btn.classList.remove('btn-primary');
-            btn.classList.add('btn-danger');
-            log(`[Settings] Device API started on ${host} (HoloLens/Quest 스캔용)`);
+            btn.textContent = 'Stop API';
+            btn.classList.replace('btn-primary', 'btn-danger');
+            log(`[Settings] Device API started on ${host}`);
         } else if (result.status === 'stopped') {
             btn.dataset.running = 'false';
             btn.textContent = 'Device API';
-            btn.classList.remove('btn-danger');
-            btn.classList.add('btn-primary');
+            btn.classList.replace('btn-danger', 'btn-primary');
             log('[Settings] Device API stopped');
-        } else if (result.status === 'error') {
-            log(`[Settings] Device API error: ${result.error || 'ROS2 서버 연결 실패'} - ROS2 Docker 실행 확인 필요`, 'error');
         } else {
-            log(`[Settings] Device API response: ${JSON.stringify(result)}`);
+            log(`[Settings] Device API: ${result.error || 'unknown'}`, 'error');
         }
     } catch (e) {
-        log(`[Settings] Device API error: ${e.message} - ROS2 Docker (${host}) 실행 확인 필요`, 'error');
+        log(`[Settings] Device API error: ${e.message}`, 'error');
     }
 }
 
@@ -602,11 +892,7 @@ async function scanDevices() {
     const btn = document.getElementById('btn-scan-devices');
     const deviceList = document.getElementById('device-list');
     const server = getSelectedServer();
-
-    // ROS2 서버 IP 가져오기
-    const serverSelect = document.getElementById('ros-server');
-    const selectedOption = serverSelect?.selectedOptions[0];
-    const host = selectedOption?.dataset.host || 'unknown';
+    const host = getServerHost();
 
     btn.disabled = true;
     btn.textContent = 'Scanning...';
@@ -631,8 +917,8 @@ async function scanDevices() {
             log('[Settings] No devices found');
         }
     } catch (e) {
-        deviceList.innerHTML = '<p class="no-devices">Scan failed - ROS2 Docker 필요</p>';
-        log(`[Settings] Device scan error: ${e.message} - ROS2 Docker (${host}) 실행 확인 필요`, 'error');
+        deviceList.innerHTML = '<p class="no-devices">Scan failed</p>';
+        log(`[Settings] Device scan error: ${e.message}`, 'error');
     } finally {
         btn.disabled = false;
         btn.textContent = 'Scan Devices';
@@ -640,52 +926,56 @@ async function scanDevices() {
 }
 
 function updateTcpStatus(text, connected) {
-    document.getElementById('tcp-status').textContent = text;
-    document.getElementById('tcp-status-dot').className =
-        connected ? 'status-dot connected' : 'status-dot disconnected';
+    const statusEl = document.getElementById('tcp-status');
+    const dotEl = document.getElementById('tcp-status-dot');
+    if (statusEl) statusEl.textContent = text;
+    if (dotEl) dotEl.className = connected ? 'status-dot connected' : 'status-dot disconnected';
 }
 
-function log(message, level = 'info') {
-    const prefix = level === 'error' ? '[ERR]' : '[INFO]';
-    console.log(`${prefix} ${message}`);
-}
+// ==================== Settings Actions ====================
 
 async function applySettings() {
     const settings = {
-        pattern: {
-            size: parseFloat(document.getElementById('pattern-size').value),
-            height: parseFloat(document.getElementById('pattern-height').value),
-            duration: parseFloat(document.getElementById('pattern-duration').value)
-        },
+        robot: selectedRobot,
         admittance: {
-            enabled: document.getElementById('admittance-enabled').checked,
+            enabled: document.getElementById('admittance-enabled')?.checked ?? true,
             dynamics: {
                 inertia: [
-                    parseFloat(document.getElementById('mass-x').value),
-                    parseFloat(document.getElementById('mass-y').value),
-                    parseFloat(document.getElementById('mass-z').value)
+                    parseFloat(document.getElementById('mass-x')?.value || 10.0),
+                    parseFloat(document.getElementById('mass-y')?.value || 10.0),
+                    parseFloat(document.getElementById('mass-z')?.value || 10.0)
                 ],
                 damping: [
-                    parseFloat(document.getElementById('damping-x').value),
-                    parseFloat(document.getElementById('damping-y').value),
-                    parseFloat(document.getElementById('damping-z').value)
+                    parseFloat(document.getElementById('damping-x')?.value || 3.0),
+                    parseFloat(document.getElementById('damping-y')?.value || 3.0),
+                    parseFloat(document.getElementById('damping-z')?.value || 3.0)
                 ],
                 stiffness_p: [
-                    parseFloat(document.getElementById('stiffness-x').value),
-                    parseFloat(document.getElementById('stiffness-y').value),
-                    parseFloat(document.getElementById('stiffness-z').value)
+                    parseFloat(document.getElementById('stiffness-x')?.value || 0.0),
+                    parseFloat(document.getElementById('stiffness-y')?.value || 0.0),
+                    parseFloat(document.getElementById('stiffness-z')?.value || 0.0)
                 ]
             }
+        },
+        ft_sensor: {
+            enabled: document.getElementById('ft-sensor-enabled')?.checked ?? true,
+            force_threshold: [
+                parseFloat(document.getElementById('force-x')?.value || 50.0),
+                parseFloat(document.getElementById('force-y')?.value || 50.0),
+                parseFloat(document.getElementById('force-z')?.value || 50.0)
+            ],
+            torque_threshold: [
+                parseFloat(document.getElementById('torque-x')?.value || 10.0),
+                parseFloat(document.getElementById('torque-y')?.value || 10.0),
+                parseFloat(document.getElementById('torque-z')?.value || 10.0)
+            ]
         }
     };
 
     console.log('[Settings] Applying:', settings);
-
-    // sessionStorage에 저장 (다른 패널에서 사용)
-    sessionStorage.setItem('patternSettings', JSON.stringify(settings.pattern));
     sessionStorage.setItem('admittanceSettings', JSON.stringify(settings.admittance));
+    sessionStorage.setItem('ftSensorSettings', JSON.stringify(settings.ft_sensor));
 
-    // API로 전송 시도
     try {
         await fetch('/api/settings', {
             method: 'POST',
@@ -694,118 +984,25 @@ async function applySettings() {
         });
         document.getElementById('config-status').textContent = 'Settings applied';
     } catch (e) {
-        document.getElementById('config-status').textContent = 'Saved locally (API unavailable)';
+        document.getElementById('config-status').textContent = 'Saved locally';
     }
 }
 
 function resetSettings() {
-    if (currentConfig) {
-        updateAdmittanceDisplay(currentConfig);
+    if (selectedRobot && robotConfigs[selectedRobot]) {
+        renderRobotPanel(selectedRobot);
+        document.getElementById('config-status').textContent = 'Reset to defaults';
     }
-
-    // 기본 패턴 값
-    document.getElementById('pattern-size').value = 0.20;
-    document.getElementById('pattern-size-value').textContent = '0.20';
-    document.getElementById('pattern-height').value = 0.0;
-    document.getElementById('pattern-height-value').textContent = '0.00';
-    document.getElementById('pattern-duration').value = 2.0;
-    document.getElementById('pattern-duration-value').textContent = '2.0';
-
-    document.getElementById('config-status').textContent = 'Reset to defaults';
-}
-
-// ==================== Foxglove ====================
-
-function initFoxglove() {
-    document.getElementById('btn-foxglove-connect').addEventListener('click', connectFoxglove);
-    document.getElementById('btn-foxglove-disconnect').addEventListener('click', disconnectFoxglove);
-}
-
-function connectFoxglove() {
-    // 선택된 ROS2 서버 IP 사용 (localhost가 아님!)
-    const serverSelect = document.getElementById('ros-server');
-    const selectedOption = serverSelect?.selectedOptions[0];
-    const host = selectedOption?.dataset.host || sessionStorage.getItem('rosServerHost') || 'localhost';
-    const port = 8765;
-
-    console.log(`[Settings] Connecting to Foxglove at ${host}:${port}`);
-
-    if (typeof foxglove === 'undefined') {
-        console.error('[Settings] Foxglove module not loaded');
-        log('[Settings] Foxglove module not loaded', 'error');
-        return;
-    }
-
-    // 이미 연결된 경우 연결 해제 후 재연결
-    if (foxglove.connected) {
-        foxglove.disconnect();
-    }
-
-    foxglove.onConnect = () => {
-        foxgloveConnected = true;
-        document.getElementById('foxglove-status').textContent = 'Connected';
-        document.getElementById('foxglove-status-dot').className = 'status-dot connected';
-        document.getElementById('btn-foxglove-connect').disabled = true;
-        document.getElementById('btn-foxglove-disconnect').disabled = false;
-        log(`[Settings] Foxglove connected to ${host}:${port}`);
-
-        // 토픽 목록 표시
-        setTimeout(updateFoxgloveTopics, 500);
-    };
-
-    foxglove.onDisconnect = () => {
-        foxgloveConnected = false;
-        document.getElementById('foxglove-status').textContent = 'Disconnected';
-        document.getElementById('foxglove-status-dot').className = 'status-dot disconnected';
-        document.getElementById('btn-foxglove-connect').disabled = false;
-        document.getElementById('btn-foxglove-disconnect').disabled = true;
-        document.getElementById('foxglove-topics').innerHTML = '<div class="no-data">Not connected</div>';
-    };
-
-    foxglove.onError = (error) => {
-        console.error('[Settings] Foxglove error:', error);
-        document.getElementById('foxglove-status').textContent = 'Error';
-        document.getElementById('foxglove-status-dot').className = 'status-dot warning';
-        log(`[Settings] Foxglove connection failed: ${host}:${port} - ROS2 Docker에서 Foxglove Bridge 실행 필요`, 'error');
-    };
-
-    foxglove.connect(host, port);
-}
-
-function disconnectFoxglove() {
-    if (typeof foxglove !== 'undefined') {
-        foxglove.disconnect();
-    }
-}
-
-function updateFoxgloveTopics() {
-    if (typeof foxglove === 'undefined') return;
-
-    const topics = foxglove.getAvailableTopics ? foxglove.getAvailableTopics() : [];
-    const container = document.getElementById('foxglove-topics');
-
-    if (topics.length === 0) {
-        container.innerHTML = '<div class="no-data">No topics available</div>';
-        return;
-    }
-
-    let html = '';
-    for (const topic of topics.slice(0, 20)) {  // 최대 20개 표시
-        html += `<div class="topic-item">
-            <span class="topic-name">${topic.topic}</span>
-            <span class="topic-type">${topic.schemaName || topic.type || '-'}</span>
-        </div>`;
-    }
-
-    if (topics.length > 20) {
-        html += `<div class="topic-item">... and ${topics.length - 20} more</div>`;
-    }
-
-    container.innerHTML = html;
 }
 
 // ==================== Utilities ====================
 
+function log(message, level = 'info') {
+    const prefix = level === 'error' ? '[ERR]' : '[INFO]';
+    console.log(`${prefix} ${message}`);
+}
+
 function updateTimestamp() {
-    document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+    const el = document.getElementById('last-update');
+    if (el) el.textContent = new Date().toLocaleTimeString();
 }

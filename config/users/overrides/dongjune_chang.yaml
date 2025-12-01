@@ -16,10 +16,10 @@ server:
 # === 연결 모드 ===
 streaming_mode: "zmq_local"
 
-# === RILEY AI 연결 ===
-# personas, mimic 등 AI 선호 설정은 ai/ai_user_preferences/로 분리됨
+# === RILEY AI 연결 (v2.3) ===
+# server: network_config.servers.ai 키 참조
 riley:
-  mode: "zmq_local"
+  server: "localhost"         # localhost | nchr | home | anl | ngrok
 
 # === 권한 설정 (Admin 전체 권한) ===
 permissions:

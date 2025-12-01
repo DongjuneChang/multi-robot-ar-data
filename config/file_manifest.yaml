@@ -1,0 +1,115 @@
+# File Manifest for Multi-HRI System
+# 모든 설정 파일의 인덱스 및 메타데이터
+# 수정일: 2025-12-01
+version: "2.3"
+base_path: "config/"
+
+# === Core Configuration Files ===
+core_configs:
+  - path: "network_config.yaml"
+    type: "NetworkConfigData"
+    required: true
+    description: "Server endpoints (web, ai, ros2, photon), streaming, timeouts"
+
+  - path: "device_config.yaml"
+    type: "DeviceConfigData"
+    required: true
+    description: "HoloLens device configuration (per-device portal credentials)"
+
+  - path: "robot_qr_mapping.yaml"
+    type: "RobotQRMappingData"
+    required: true
+    description: "QR code to robot type mapping"
+
+# === AI Configuration (v2.3 - Folder Structure) ===
+# 기존 ai_config.yaml이 폴더 구조로 분리됨
+ai_configs:
+  defaults: "ai/_defaults.yaml"
+  type: "AIConfigData"
+  description: "Riley & LLM defaults, provider structure"
+
+  # Provider별 설정 (ai/_defaults.yaml 상속)
+  providers_path: "ai/providers/"
+  provider_type: "AIProviderData"
+  provider_files:
+    - "ollama.yaml"      # local_runtime
+    - "openai.yaml"      # cloud_api
+    - "anthropic.yaml"   # cloud_api
+    - "google.yaml"      # cloud_api
+
+  # Knowledge/Expert 프로필 (RILEY Mimic용)
+  knowledge:
+    defaults: "ai/knowledge/_defaults.yaml"
+    experts_path: "ai/knowledge/experts/"
+    domains_path: "ai/knowledge/domains/"
+    type: "KnowledgeConfigData"
+
+  # 사용자별 AI 선호도 (persona, expert 선택 등)
+  user_preferences:
+    defaults: "ai/ai_user_preferences/_defaults.yaml"
+    overrides_path: "ai/ai_user_preferences/overrides/"
+    type: "AIUserPreferencesData"
+
+# === User Configuration (Override Pattern) ===
+user_configs:
+  defaults: "users/_defaults.yaml"
+  overrides_path: "users/overrides/"
+  type: "UserConfigData"
+  description: "User-specific settings (server, riley mode, permissions)"
+
+# === Robot Configuration (Override Pattern) ===
+network_robot_configs:
+  defaults: "network_robots/_defaults.yaml"
+  overrides_path: "network_robots/overrides/"
+  type: "NetworkRobotData"
+  description: "Robot TF mappings and network config per robot type"
+
+# === Policy Configuration ===
+policy_configs:
+  - path: "policies/robot_visualization_strategy.yaml"
+    type: "VisualizationStrategyData"
+    required: true
+    description: "Robot visualization strategies and policies"
+
+# === Non-Unity Configs (HTML Panel / ROS2 Server용) ===
+# Unity에서 로드하지 않음 - 참조용
+non_unity_configs:
+  ros2_interface:
+    path: "ros2_interface/"
+    description: "ROS2 topic/service definitions - used by HTML Panel & ROS2"
+
+  unit_patterns:
+    path: "unit_patterns/"
+    description: "Waypoint patterns - used by ROS2 pattern_test_service"
+
+  fusion2:
+    path: "fusion2/"
+    description: "Photon Fusion2 webhook config - used by server"
+
+  projects:
+    path: "projects/"
+    description: "Project definitions - used by HTML Panel"
+
+# === Legacy (Deprecated) ===
+legacy:
+  path: "__legacy__/"
+  files:
+    - "map_data.yaml"       # Replaced by robot_qr_mapping.yaml + users/
+    - "ai_config.yaml"      # Replaced by ai/ folder structure (v2.3)
+    - "server_config.yaml"  # Deleted - unused
+
+# === Metadata ===
+metadata:
+  created: "2025-11-10"
+  updated: "2025-12-01"
+  updated_by: "Config Restructuring v2.3"
+  changes:
+    - "v2.0: Split map_data.yaml into robot_qr_mapping.yaml and users/"
+    - "v2.0: Split network_config.yaml, created ai_config.yaml"
+    - "v2.0: Added user config override pattern"
+    - "v2.1: Restructured network_config.yaml (servers.web/ai/ros2/photon)"
+    - "v2.1: Commented out ros2_interface, unit_patterns (non-Unity)"
+    - "v2.2: AI modes moved to network_config.yaml servers.ai section"
+    - "v2.3: ai_config.yaml replaced by ai/ folder structure"
+    - "v2.3: Added ai/providers/, ai/knowledge/, ai/ai_user_preferences/"
+    - "v2.3: Added fusion2/, projects/ to non_unity_configs"

@@ -17,6 +17,10 @@ const state = {
     foxglovePort: 8765,
     foxgloveHost: null,  // ROS2 server IP for Foxglove
 
+    // Project
+    currentProject: null,
+    selectedServer: null,  // Server ID for ROS2 API calls
+
     // Robot
     selectedRobot: null,
     robotConfig: null,
@@ -179,15 +183,55 @@ async function loadConfigurations() {
 }
 
 /**
- * Load server info from sessionStorage (set by Settings page)
+ * Load current project from sessionStorage
+ */
+function loadCurrentProject() {
+    const projectJson = sessionStorage.getItem('currentProject');
+    if (projectJson) {
+        try {
+            state.currentProject = JSON.parse(projectJson);
+            log(`Project: ${state.currentProject.name || state.currentProject.id}`, 'info');
+            return state.currentProject;
+        } catch (e) {
+            log('Failed to parse project', 'warn');
+        }
+    }
+    return null;
+}
+
+/**
+ * Get server ID for ROS2 API calls (from project or settings)
+ */
+function getRos2ServerId() {
+    // Priority: Project > Settings > Default
+    if (state.currentProject?.server?.ros2_server) {
+        return state.currentProject.server.ros2_server;
+    }
+    return sessionStorage.getItem('selectedServer') || null;
+}
+
+/**
+ * Load server info from sessionStorage (set by Settings page) or Project
  */
 function loadServerFromSettings() {
+    // First check project settings
+    const project = loadCurrentProject();
+    if (project?.server?.ros2_server) {
+        state.selectedServer = project.server.ros2_server;
+        // Get host from network config cache or use server name
+        document.getElementById('header-server').textContent = project.server.ros2_server;
+        log(`Server: ${project.server.ros2_server} (from Project)`, 'info');
+        return;
+    }
+
+    // Fallback to sessionStorage
     const serverHost = sessionStorage.getItem('rosServerHost');
     const serverPort = sessionStorage.getItem('rosServerPort');
     const serverName = sessionStorage.getItem('selectedServer');
 
     if (serverHost) {
         state.rosServerIp = serverHost;
+        state.selectedServer = serverName;
         document.getElementById('header-server').textContent = serverName ? `${serverName}` : serverHost;
         log(`Server: ${serverHost}:${serverPort || 10000}`, 'info');
     }
@@ -443,11 +487,12 @@ async function toggleMoveIt() {
     const btn = document.getElementById('btn-moveit');
     // Get mode from sessionStorage (set by Settings page)
     const mode = sessionStorage.getItem('systemMode') || 'fake';
+    const server = getRos2ServerId();
 
     try {
         if (!state.moveitRunning) {
-            log(`Launching MoveIt in ${mode} mode...`, 'info');
-            await api.toggleMoveIt('start', mode);
+            log(`Launching MoveIt in ${mode} mode on ${server || 'default'}...`, 'info');
+            await api.toggleMoveIt('start', mode, server);
             state.moveitRunning = true;
             btn.textContent = 'Stop MoveIt';
             btn.dataset.running = 'true';

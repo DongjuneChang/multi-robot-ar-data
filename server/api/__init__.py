@@ -10,7 +10,7 @@ Contains all API handlers:
 
 from .config_api import ConfigAPIHandler, RobotConfigAPIHandler
 from .tracking_api import TrackingAPIHandler
-from .ros_api import ROS2APIHandler
+from .ros.ros_api import ROS2APIHandler
 
 __all__ = [
     'ConfigAPIHandler',
