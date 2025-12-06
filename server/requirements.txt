@@ -1,7 +1,0 @@
-# Multi-HRI Web Server Requirements
-flask
-flask-socketio
-pyyaml
-requests
-pyzmq
-eventlet
