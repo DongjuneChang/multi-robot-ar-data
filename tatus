@@ -1,0 +1,97 @@
+[1mdiff --git a/README.md b/README.md[m
+[1mindex ff0d470..7c35082 100644[m
+[1m--- a/README.md[m
+[1m+++ b/README.md[m
+[36m@@ -2,40 +2,72 @@[m
+ [m
+ HoloLens 2 AR 멀티유저 로봇 제어 시스템의 **설정 파일 저장소**[m
+ [m
+[31m-## 📁 파일 구조[m
+[32m+[m[32m## 📁 파일 구조 (v3.0)[m
+ [m
+ ```[m
+ multi-robot-ar-data/[m
+[31m-├── map_data.yaml         # QR 코드 및 사용자 등록 정보[m
+[31m-├── device_config.yaml    # HoloLens 2 디바이스 설정[m
+[31m-├── streaming_config.yaml # MRC 스트리밍 최적화 설정[m
+[31m-└── README.md[m
+[32m+[m[32m├── config/                    # 모든 설정 파일[m
+[32m+[m[32m│   ├── network_config.yaml    # 네트워크/서버 설정[m
+[32m+[m[32m│   ├── device_config.yaml     # HoloLens 디바이스 설정[m
+[32m+[m[32m│   ├── robot_qr_mapping.yaml  # QR 코드-로봇 매핑[m
+[32m+[m[32m│   │[m
+[32m+[m[32m│   ├── network_robots/        # 로봇별 설정[m
+[32m+[m[32m│   │   ├── _defaults.yaml[m
+[32m+[m[32m│   │   └── overrides/         # lite6, xarm5, ur3e, ur5e, etc.[m
+[32m+[m[32m│   │[m
+[32m+[m[32m│   ├── ai/                    # AI 설정 (v2.3+)[m
+[32m+[m[32m│   │   ├── _defaults.yaml[m
+[32m+[m[32m│   │   ├── providers/         # ollama, openai, anthropic, google[m
+[32m+[m[32m│   │   ├── knowledge/         # Expert profiles & domains[m
+[32m+[m[32m│   │   └── ai_user_preferences/  # 사용자별 AI 선호도[m
+[32m+[m[32m│   │[m
+[32m+[m[32m│   ├── users/                 # 사용자 설정[m
+[32m+[m[32m│   │   ├── _defaults.yaml[m
+[32m+[m[32m│   │   └── overrides/         # 사용자별 오버라이드[m
+[32m+[m[32m│   │[m
+[32m+[m[32m│   ├── unit_patterns/        # 움직임 패턴 (unit-based)[m
+[32m+[m[32m│   ├── ros2_interface/        # ROS2 토픽/서비스 정의[m
+[32m+[m[32m│   ├── policies/             # 전략/정책 설정[m
+[32m+[m[32m│   └── projects/             # 프로젝트 정의[m
+[32m+[m[32m│[m
+[32m+[m[32m├── file_manifest.yaml         # 파일 인덱스 및 메타데이터[m
+[32m+[m[32m└── README.md                  # 이 파일[m
+ ```[m
+ [m
+[31m-## 🔧 설정 파일 설명[m
+[32m+[m[32m## 🔧 주요 설정 파일[m
+ [m
+[31m-### map_data.yaml[m
+[31m-- QR 코드 등록 정보 (위치, ID)[m
+[31m-- 사용자 권한 및 디바이스 정보[m
+[31m-- 스폰된 로봇 초기 설정[m
+[32m+[m[32m### Core Configs[m
+[32m+[m[32m- **network_config.yaml**: 서버 엔드포인트 (web, ai, ros2, photon), 스트리밍, 타임아웃[m
+[32m+[m[32m- **device_config.yaml**: HoloLens Device Portal 접속 정보, 디바이스별 설정[m
+[32m+[m[32m- **robot_qr_mapping.yaml**: QR 코드와 로봇 타입 매핑[m
+ [m
+[31m-### device_config.yaml[m
+[31m-- HoloLens Device Portal 접속 정보[m
+[31m-- 각 사용자별 디바이스 IP/이름[m
+[31m-- 스트리밍 품질 프리셋[m
+[32m+[m[32m### Robot Configs[m
+[32m+[m[32m- **network_robots/**: 로봇별 설정 (lite6, xarm5, ur3e, ur5e, ur16e, fr3, iiwa7, med7, med14, kinova_gen3_7dof)[m
+[32m+[m[32m- Joint angles는 **DEGREES** 단위 (ROS2에서 radians로 변환)[m
+ [m
+[31m-### streaming_config.yaml[m
+[31m-- MRC 딜레이 최적화 설정[m
+[31m-- 품질별 프리셋 (low_latency, standard, high_quality)[m
+[32m+[m[32m### AI Configs (v2.3+)[m
+[32m+[m[32m- **ai/providers/**: AI 제공자 설정 (ollama, openai, anthropic, google)[m
+[32m+[m[32m- **ai/knowledge/**: Expert 프로필 및 도메인 지식[m
+[32m+[m[32m- **ai/ai_user_preferences/**: 사용자별 AI 선호도[m
+[32m+[m
+[32m+[m[32m### Patterns[m
+[32m+[m[32m- **unit_patterns/**: Unit-based 좌표 (-1 to 1 범위)[m
+[32m+[m[32m- 실제 위치 = `unit_value * defaults.size`[m
+ [m
+ ## 🔄 Unity에서 자동 다운로드[m
+ [m
+ ```csharp[m
+ // GitHubUtility3_2 사용[m
+[31m-var gitHub = new GitHubUtility3_2("main");[m
+[31m-var mapData = await gitHub.DownloadAndParseJsonAsync<MapData>("map_data.yaml");[m
+[32m+[m[32mvar gitHub = new GitHubUtility3_2("main_v3.0");[m
+[32m+[m[32mvar robotConfig = await gitHub.DownloadAndParseJsonAsync<RobotConfig>("config/network_robots/overrides/lite6.yaml");[m
+[32m+[m[32mvar networkConfig = await gitHub.DownloadAndParseJsonAsync<NetworkConfig>("config/network_config.yaml");[m
+ ```[m
+ [m
+[32m+[m[32m## 📚 상세 문서[m
+[32m+[m
+[32m+[m[32m- [config/README.md](config/README.md) - 설정 구조 상세 설명[m
+[32m+[m[32m- [file_manifest.yaml](file_manifest.yaml) - 전체 파일 인덱스[m
+[32m+[m
+ ## 📅 Last Updated[m
+ [m
+[31m-2025-08-21 by Dongjune Chang[m
+[32m+[m[32m2025-12-05 by Dongjune Chang (v3.0 - 간소화된 구조로 재구성)[m
