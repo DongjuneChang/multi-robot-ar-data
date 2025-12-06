@@ -1,0 +1,59 @@
+# Foxglove Studio - Build from Open Source GitHub Repository
+# https://github.com/foxglove/studio
+#
+# This builds Foxglove Studio from source (no login required)
+# Use a specific tag/commit before login requirement was added
+#
+# Build:
+#   docker build -f Dockerfile.studio.opensource -t foxglove-studio:opensource .
+#
+# Run:
+#   docker run -d -p 8080:8080 foxglove-studio:opensource
+
+# Option 1: Use specific version before login requirement (e.g., v1.84.0)
+# FROM ghcr.io/foxglove/studio:1.84.0
+
+# Option 2: Build from source (recommended for latest open-source features)
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apk add --no-cache \
+    git \
+    python3 \
+    make \
+    g++
+
+# Clone Foxglove Studio repository
+# Use a specific commit/tag before login requirement
+# Check: https://github.com/foxglove/studio/releases
+ARG FOXGLOVE_VERSION=v1.84.0
+RUN git clone --depth 1 --branch ${FOXGLOVE_VERSION} https://github.com/foxglove/studio.git . || \
+    git clone --depth 1 https://github.com/foxglove/studio.git . && \
+    git checkout ${FOXGLOVE_VERSION} 2>/dev/null || true
+
+# Install dependencies and build
+RUN yarn install --frozen-lockfile && \
+    yarn build:web
+
+# Production stage with Caddy
+FROM caddy:2.6-alpine
+
+WORKDIR /src
+
+# Copy built files from builder
+COPY --from=builder /app/packages/suite-web/dist ./dist
+
+# Create Caddyfile
+RUN echo ':8080' > /etc/caddy/Caddyfile && \
+    echo 'root * /src/dist' >> /etc/caddy/Caddyfile && \
+    echo 'file_server' >> /etc/caddy/Caddyfile && \
+    echo 'try_files {path} /index.html' >> /etc/caddy/Caddyfile
+
+EXPOSE 8080
+
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
+
+
+

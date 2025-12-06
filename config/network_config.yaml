@@ -4,8 +4,8 @@
 # 수정일: 2025-12-06
 # 작성자: Dongjune Chang
 #
-# NOTE: 실제 IP 주소는 secrets/network_secrets.yaml에서 관리
-#       secrets/ 폴더는 .gitignore에 의해 Git에서 제외됨
+# NOTE: Husarnet hostname 사용 (VPN 내에서만 resolve)
+#       Husarnet 네트워크에 join된 기기에서만 접근 가능
 #
 # 각 서버는 물리적으로 다른 머신에 있을 수 있음:
 #   - HoloLens ↔ ROS2 Server (Linux): TCP 직접 통신
@@ -24,8 +24,12 @@ servers:
   # AI 서버들 (RILEY + LLM)
   # Provider 설정: ai/providers/*.yaml
   # Riley 설정: ai/_defaults.yaml
-  # NOTE: 실제 host IP는 secrets/network_secrets.yaml 참조
+  # NOTE: Husarnet hostname 사용 (VPN 내에서만 resolve)
+  #
+  # 키 명명 규칙: users/*.yaml의 riley.server 참조용
   ai:
+    # === Site ID 기반 ===
+
     # 로컬 개발 (같은 PC)
     localhost:
       type: "zmq"
@@ -34,18 +38,10 @@ servers:
       zmq_sub_port: 5566      # Python → Unity
       ollama_port: 11434
 
-    # NCHR 연구실 서버
-    nchr:
+    # 시카고 홈 (Alienware GPU)
+    chicago_home:
       type: "zmq"
-      host: "${AI_NCHR_HOST}"  # secrets/network_secrets.yaml
-      zmq_pub_port: 5565
-      zmq_sub_port: 5566
-      ollama_port: 11434
-
-    # 홈 서버
-    home:
-      type: "zmq"
-      host: "${AI_HOME_HOST}"  # secrets/network_secrets.yaml
+      host: "anl-alienware-18-area-51-aa18250"  # Husarnet hostname
       zmq_pub_port: 5565
       zmq_sub_port: 5566
       ollama_port: 11434
@@ -53,12 +49,24 @@ servers:
     # ANL 서버
     anl:
       type: "zmq"
-      host: "${AI_ANL_HOST}"  # secrets/network_secrets.yaml
+      host: "anl-server"  # Husarnet hostname
       zmq_pub_port: 5565
       zmq_sub_port: 5566
       ollama_port: 11434
 
-    # ngrok (HTTP 모드)
+    # === 물리적 머신 Alias ===
+
+    # ANL Alienware (chicago_home과 동일)
+    alienware:
+      type: "zmq"
+      host: "anl-alienware-18-area-51-aa18250"
+      zmq_pub_port: 5565
+      zmq_sub_port: 5566
+      ollama_port: 11434
+
+    # === 특수 용도 ===
+
+    # ngrok (HTTP 모드) - 외부 접근용
     ngrok:
       type: "http"
       host: "riley.multi-hri.ngrok.app"
@@ -66,30 +74,49 @@ servers:
 
   # ROS2 서버들 (Linux Docker)
   # HoloLens ↔ ROS2 TCP 직접 통신
-  # NOTE: 실제 host IP는 secrets/network_secrets.yaml 참조
+  # NOTE: Husarnet hostname 사용 (VPN 내에서만 resolve)
+  #
+  # 키 명명 규칙:
+  #   - Site ID 기반 (users/*.yaml의 ros_server 참조용)
+  #   - 물리적 머신 alias도 유지 (편의성)
   ros2:
-    nchr_kuka:
-      host: "${ROS2_NCHR_KUKA_HOST}"  # secrets/network_secrets.yaml
-      port: 10000
+    # === Site ID 기반 (사용자 config 참조용) ===
 
-    nchr_xarm5:
-      host: "${ROS2_NCHR_XARM5_HOST}"  # secrets/network_secrets.yaml
-      port: 10000
-
-    home:
-      host: "${ROS2_HOME_HOST}"  # secrets/network_secrets.yaml
-      port: 10000
-
+    # 시카고 홈 (dongjune_chang.yaml 참조)
+    # Alienware PC에서 ROS2 Docker 실행
     chicago_home:
-      host: "${ROS2_CHICAGO_HOME_HOST}"  # secrets/network_secrets.yaml
+      host: "anl-alienware-18-area-51-aa18250"  # Husarnet hostname
       port: 10000
 
+    # ANL 서버 (youngsoo_park.yaml 참조)
     anl:
-      host: "${ROS2_ANL_HOST}"  # secrets/network_secrets.yaml (Husarnet IPv6)
+      host: "anl-server"  # Husarnet hostname
       port: 10000
 
+    # ASU NCHR (hyunglae_lee.yaml 참조)
+    # TODO: Husarnet 설정 후 hostname 변경
+    nchr_xarm5:
+      host: "asu-nchr-server"  # Husarnet hostname (TBD)
+      port: 10000
+
+    # === 물리적 머신 Alias ===
+
+    # ANL Alienware (chicago_home과 동일)
+    alienware:
+      host: "anl-alienware-18-area-51-aa18250"
+      port: 10000
+
+    # === 특수 용도 ===
+
+    # 로컬 개발
     localhost:
       host: "127.0.0.1"
+      port: 10000
+
+    # HoloLens standalone용 (Lightsail TCP 프록시)
+    # Lightsail에서 socat으로 Husarnet 서버에 포워딩
+    lightsail:
+      host: "54.180.154.177"  # Lightsail public IP
       port: 10000
 
   # Photon Fusion2 (멀티유저 동기화)

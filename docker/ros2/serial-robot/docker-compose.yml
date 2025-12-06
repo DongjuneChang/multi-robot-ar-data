@@ -1,0 +1,60 @@
+# Serial Robot ROS2 Control Service
+#
+# 사용 전 반드시 ../에서 .env 설정 필요
+# Linux: cp ../.env.linux ../.env
+# WSL:   cp ../.env.wsl ../.env
+#
+# 실행:
+#   docker compose up
+#
+# Foxglove 포함 실행:
+#   docker compose -f docker-compose.yml -f ../foxglove/docker-compose.yml up
+
+services:
+
+  serial-robot-control:
+    env_file: ../.env
+    container_name: serial-robot-control
+    image: serial-robot-control:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.robot
+    privileged: true
+    # network_mode: "host"  # Windows Docker Desktop에서 포트 접근 문제로 주석 처리
+    ports:
+      - "8765:8765"  # foxglove-bridge WebSocket port
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID}
+      - RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION}
+      - GAZEBO_RESOURCE_PATH=${GAZEBO_RESOURCE_PATH}
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=${QT_X11_NO_MITSHM}
+      - HOST_UID=${HOST_UID}
+      - HOST_GID=${HOST_GID}
+      - PYTHONPATH=/workspace:/workspace/src:/workspace/config:/workspace/lib:${PYTHONPATH}
+      - CONFIG_DIR=/workspace/config
+      - ROBOT_MODEL=${ROBOT_MODEL}
+    volumes:
+      - /dev/shm:/dev/shm
+      - ${ROS2_SRC_DIR}:/workspace/src/multi_hri_ros2
+      - ${CONFIG_DIR_HOST}:/workspace/config
+      - ${LIB_DIR_HOST}:/workspace/lib
+      - /tmp/.X11-unix:/tmp/.X11-unix:${X11_VOLUME_MODE}
+      - ${XAUTHORITY}:/root/.Xauthority:ro
+    deploy:
+      resources:
+        limits:
+          cpus: '${CPU_LIMIT}'
+          memory: ${MEMORY_LIMIT}
+    command: >
+      bash -c "
+        rm -f /dev/shm/fastrtps* &&
+        source /opt/ros/humble/setup.bash &&
+        cd /workspace &&
+        colcon build --cmake-args -DAMENT_CMAKE_SYMLINK_INSTALL=OFF --packages-skip xarm_msgs xarm_sdk xarm_description xarm_api xarm_controller xarm_gazebo xarm_moveit_config xarm_moveit_servo xarm_planner &&
+        echo 'multi_hri_ros2 packages built successfully!' &&
+        source /workspace/install/setup.bash &&
+        ros2 topic list &&
+        echo 'ROS2 is working!' &&
+        tail -f /dev/null
+      "
