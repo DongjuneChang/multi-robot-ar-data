@@ -1,0 +1,242 @@
+# Network Robot Defaults Template
+# 공통 구조 정의 - overrides/*.yaml에서 로봇별 값으로 덮어씀
+#
+# =============================================================================
+# UNIT CONVENTIONS
+# =============================================================================
+# - Joint angles: DEGREES (human-readable)
+# - Unity: Uses degrees directly
+# - ROS2: Must convert to RADIANS at runtime (degrees * pi / 180)
+# - Positions: METERS
+# - Orientations: Quaternion [x, y, z, w]
+# =============================================================================
+
+# =============================================================================
+# Robot Basic Info (OVERRIDE REQUIRED)
+# =============================================================================
+robot:
+  model: ""                       # OVERRIDE: "lite6", "xarm5", etc.
+  manufacturer: ""                # OVERRIDE: "UFACTORY", "Universal Robots", etc.
+  dof: 0                          # OVERRIDE: 5, 6, 7
+  id_pattern: "{model}_{anchor}"
+  prefab_name: ""                 # OVERRIDE REQUIRED: Unity prefab name in Resources/Robots/
+
+# =============================================================================
+# Joint Configuration (OVERRIDE REQUIRED)
+# =============================================================================
+joints:
+  names: []                       # OVERRIDE: ["joint1", "joint2", ...]
+  positions:                      # Named joint positions in DEGREES
+    zero: []                      # OVERRIDE: [0, 0, 0, ...]
+    home: []                      # OVERRIDE: [0, -45, 0, ...]
+  limits: {}                      # OVERRIDE: {joint1: [-360, 360], ...}
+
+# =============================================================================
+# Unity Frame Hierarchy (ICoordinateFrame / NetworkTF)
+# =============================================================================
+frame_hierarchy:
+  qr_frame_pattern: "QR_{anchor}"
+
+  root_frame:
+    type: "NetworkTF"
+    id: "{robot_id}"
+    parent: "QR_{anchor}"
+
+  # OVERRIDE REQUIRED: network_frames with robot-specific ros_frame names
+  network_frames:
+    "{robot_id}_base":
+      ros_frame: ""               # OVERRIDE REQUIRED: "fr3_link0", "link_base", etc.
+      parent: "{robot_id}"
+      type: "NetworkTF"
+
+    "{robot_id}_eef":
+      ros_frame: ""               # OVERRIDE REQUIRED: "fr3_link8", "tool0", "link_eef", etc.
+      parent: "{robot_id}_base"
+      type: "NetworkTF"
+
+    "{robot_id}_work":
+      ros_frame: "WorkFrame"
+      parent: "{robot_id}_base"
+      type: "NetworkTF"
+      critical: true
+
+  local_frames: []                # OVERRIDE REQUIRED: ["link1", "link2", ...]
+
+# =============================================================================
+# ROS2 Communication Settings
+# =============================================================================
+ros2:
+  namespace: ""
+
+  topics:
+    tf: "/tf"
+    tf_static: "/tf_static"
+    joint_states: "/joint_states"
+
+  prefab_links: {}                # OVERRIDE: {link_base: "Base", ...}
+
+  external_frames:
+    WorkFrame:
+      parent: ""                  # OVERRIDE REQUIRED: "link_base", "fr3_link0", etc.
+      topic: "/tf_static"
+      critical: true
+    robot_origin:
+      parent: "world"
+      topic: "/tf"
+
+  subscribe_frames: []            # OVERRIDE: ["world", "link_base", ...]
+
+# =============================================================================
+# ROS2 Named Frames (for FrameManager)
+# =============================================================================
+named_frames:
+  version: "2.0"
+  coordinate_system: "ROS2"
+
+  frames:
+    world:
+      parent: null
+      position: [0.0, 0.0, 0.0]
+      orientation: [0.0, 0.0, 0.0, 1.0]
+      description: "World origin"
+
+    link_base:
+      parent: "world"
+      position: [0.0, 0.0, 0.0]
+      orientation: [0.0, 0.0, 0.0, 1.0]
+      description: "Robot base link"
+
+    robot_origin:
+      parent: "link_base"
+      position: [0.0, 0.0, 0.0]   # OVERRIDE: FK at zero config
+      orientation: [0.0, 0.0, 0.0, 1.0]
+      use_joint_angles: true
+      joint_angles_ref: "joints.zero"
+      description: "Zero configuration"
+
+    Home:
+      parent: "robot_origin"
+      position: [0.0, 0.0, 0.0]
+      orientation: [0.0, 0.0, 0.0, 1.0]
+      use_joint_angles: true
+      joint_angles_ref: "joints.home"
+      description: "Home position"
+
+    WorkFrame:
+      parent: "robot_origin"
+      position: [0.15, 0.0, 0.12] # OVERRIDE: robot-specific
+      orientation: [0.0, 0.0, 1.0, 0.0]  # 180° Z rotation
+      coordinate_system: "ENU"
+      description: "ENU input frame"
+
+    WorkIK:
+      parent: "Home"
+      position: [0.0, 0.0, 0.0]
+      orientation: [0.0, 0.0, 0.0, 1.0]
+      description: "IK calculation frame"
+
+    EndEffectorOrientation:
+      parent: "WorkIK"
+      position: [0.0, 0.0, 0.0]
+      orientation: [1.0, 0.0, 0.0, 0.0]  # 180° X rotation (flange down)
+      description: "End-effector default orientation"
+
+# =============================================================================
+# Visualization Settings
+# =============================================================================
+visualization_config: ""          # OVERRIDE: "lite6_visualization"
+
+ros2_visualization:
+  reference_frame: "link_base"    # OVERRIDE if different
+  features:
+    show_current_pose: true
+    show_target_pose: true
+    show_path: true
+  markers:
+    sphere_scale: 0.05
+    text_scale: 0.03
+    path_line_width: 0.02
+  colors:
+    current: [1.0, 0.0, 0.0, 1.0]
+    target: [0.0, 0.0, 1.0, 1.0]
+    path: [0.0, 1.0, 0.0, 0.8]
+    success: [0.0, 1.0, 0.0, 0.6]
+    text: [1.0, 1.0, 1.0, 1.0]
+
+# =============================================================================
+# Control Configuration
+# =============================================================================
+# control.type determines how the robot is controlled:
+#   - "moveit": Use MoveIt2 for motion planning + trajectory execution
+#   - "direct": Direct joint control without MoveIt
+#   - "servo": MoveIt Servo for real-time control
+#
+# relay: Maps namespaced topics/actions/services to global ones
+#   - Required when robot_controller uses /{robot_id}/... namespace
+#   - but MoveIt/controllers use global namespace
+# =============================================================================
+control:
+  type: ""                      # OVERRIDE: "moveit", "direct", "servo"
+
+  relay:
+    # Action relay: robot_controller → MoveIt trajectory controller
+    actions:
+      follow_joint_trajectory:
+        from: "/{robot_id}/{controller_name}/follow_joint_trajectory"
+        to: "/{controller_name}/follow_joint_trajectory"
+
+    # Service relay: robot_controller → MoveIt services
+    services:
+      compute_ik:
+        from: "/{robot_id}/compute_ik"
+        to: "/compute_ik"
+      compute_fk:
+        from: "/{robot_id}/compute_fk"
+        to: "/compute_fk"
+
+    # Topic relay: namespaced → global
+    topics:
+      joint_states:
+        from: "/{robot_id}/joint_states"
+        to: "/joint_states"
+        direction: "bidirectional"  # global → namespaced도 필요
+
+# =============================================================================
+# MoveIt Configuration (used when control.type == "moveit")
+# =============================================================================
+moveit:
+  controller_name: ""           # OVERRIDE: "xarm5_traj_controller", "lite6_traj_controller", etc.
+  move_group: ""                # OVERRIDE: "xarm5", "lite6", "ur_manipulator"
+
+# =============================================================================
+# Admittance Controller Configuration
+# Reference: docs/admittance_control_theory_2025-11-26.md
+# =============================================================================
+admittance:
+  dynamics:
+    inertia: [10.0, 10.0, 10.0]
+    damping: [3.0, 3.0, 3.0]
+    stiffness_p: [0.0, 0.0, 0.0]
+    stiffness_d: [0.0, 0.0, 0.0]
+    dynamic_update: true
+
+  control:
+    dt: 0.001
+    mode: "force_displacement"
+    state_type: "position"
+
+  safety:
+    max_velocity: [1.0, 1.0, 0.5]
+    max_acceleration: [10.0, 10.0, 5.0]
+    max_force: [100.0, 100.0, 50.0]
+    dynamic_update: true
+
+  equilibrium:
+    position: [0.0, 0.0, 0.0]
+    velocity: [0.0, 0.0, 0.0]
+    dynamic_update: true
+
+  initial_state:
+    position: [0.0, 0.0, 0.0]
+    velocity: [0.0, 0.0, 0.0]
+    dynamic_update: false

@@ -1,0 +1,18 @@
+# Circle Pattern (Unit-based, Generated)
+# Generated at runtime using parameters
+
+coordinate_system: ENU
+reference_frame: world
+target_reference_frame: WorkFrame
+
+pattern_type: circle
+
+# Default parameters (adjustable via HTML panel)
+defaults:
+  radius: 0.20          # meters (actual radius)
+  height: 0.0           # meters (z offset)
+  num_points: 16        # number of points on circle
+  duration_per_point: 0.5  # seconds
+
+# Generator will create points on unit circle (radius=1)
+# then multiply by defaults.radius

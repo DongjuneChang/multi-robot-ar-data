@@ -1,0 +1,11 @@
+# xArm5 Robot Override
+# 기준: xarm_moveit_config xarm5_moveit_*.launch.py
+
+robot:
+  type: "xarm5"
+  group_name: "xarm5"
+  moveit_package: "xarm_moveit_config"
+
+# UFACTORY 제약: root namespace 강제
+ros2:
+  namespace: ""

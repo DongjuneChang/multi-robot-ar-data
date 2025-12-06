@@ -1,0 +1,79 @@
+# KUKA MED14 Robot Override Configuration
+# 이 파일의 값이 _defaults.yaml을 덮어씀
+
+robot:
+  model: "med14"
+  manufacturer: "KUKA"
+  dof: 7
+  prefab_name: "med14"
+
+joints:
+  names: ["med14_A1", "med14_A2", "med14_A3", "med14_A4", "med14_A5", "med14_A6", "med14_A7"]
+  positions:
+    zero: [0, 0, 0, 0, 0, 0, 0]
+    home: [0, 0, 0, -90, 0, 90, 0]
+  limits:
+    med14_A1: [-170, 170]
+    med14_A2: [-120, 120]
+    med14_A3: [-170, 170]
+    med14_A4: [-120, 120]
+    med14_A5: [-170, 170]
+    med14_A6: [-120, 120]
+    med14_A7: [-175, 175]
+
+frame_hierarchy:
+  network_frames:
+    "{robot_id}_base":
+      ros_frame: "med14_link_0"
+    "{robot_id}_eef":
+      ros_frame: "med14_link_ee"
+  local_frames:
+    - "med14_link_1"
+    - "med14_link_2"
+    - "med14_link_3"
+    - "med14_link_4"
+    - "med14_link_5"
+    - "med14_link_6"
+    - "med14_link_7"
+
+ros2:
+  prefab_links:
+    med14_link_0: "Base"
+    med14_link_ee: "EndEffector"
+    med14_link_1: "Link1"
+    med14_link_2: "Link2"
+    med14_link_3: "Link3"
+    med14_link_4: "Link4"
+    med14_link_5: "Link5"
+    med14_link_6: "Link6"
+    med14_link_7: "Link7"
+
+  external_frames:
+    WorkFrame:
+      parent: "med14_link_0"
+
+  subscribe_frames:
+    - "world"
+    - "robot_origin"
+    - "med14_link_0"
+    - "med14_link_ee"
+    - "WorkFrame"
+    - "med14_link_1"
+    - "med14_link_2"
+    - "med14_link_3"
+    - "med14_link_4"
+    - "med14_link_5"
+    - "med14_link_6"
+    - "med14_link_7"
+
+named_frames:
+  frames:
+    robot_origin:
+      position: [0.0, 0.0, 1.305]  # FK at zero config (PyBullet verified)
+    WorkFrame:
+      position: [0.25, 0.0, 0.15]
+
+visualization_config: "med14_visualization"
+
+ros2_visualization:
+  reference_frame: "med14_link_0"

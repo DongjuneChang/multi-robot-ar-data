@@ -1,0 +1,21 @@
+# Anthropic Provider Configuration
+# https://console.anthropic.com
+
+type: "cloud_api"
+
+# 모델 설정
+model: "claude-3-haiku-20240307"
+
+# API 키 환경변수
+api_key_env: "ANTHROPIC_API_KEY"
+
+# 옵션
+options:
+  max_tokens: 2048
+  temperature: 0.3
+
+# === 사용 가능한 모델들 ===
+# claude-3-haiku-20240307   - 빠르고 저렴 (권장)
+# claude-3-5-sonnet-20241022 - 균형
+# claude-3-5-haiku-20241022  - 최신 빠른 모델
+# claude-3-opus-20240229    - 고성능

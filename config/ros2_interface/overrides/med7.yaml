@@ -1,0 +1,27 @@
+# KUKA MED7 Robot Override (Medical variant)
+# 기준: lbr_bringup + med7_moveit_config
+
+robot:
+  type: "med7"
+  group_name: "arm"
+  moveit_package: "med7_moveit_config"
+
+ros2:
+  namespace: ""
+
+# KUKA LBR launch 파일 형식
+commands:
+  mock:
+    description: "Launch KUKA MED7 mock hardware"
+    template: "ros2 launch lbr_bringup mock.launch.py model:={robot.type}"
+    defaults: {}
+
+  moveit_fake:
+    description: "Launch KUKA MED7 MoveIt (requires mock or hardware running)"
+    template: "ros2 launch lbr_bringup move_group.launch.py model:={robot.type} mode:=mock"
+    defaults: {}
+
+  moveit_real:
+    description: "Launch KUKA MED7 MoveIt for real robot"
+    template: "ros2 launch lbr_bringup move_group.launch.py model:={robot.type} mode:=hardware"
+    defaults: {}

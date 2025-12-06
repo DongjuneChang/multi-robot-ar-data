@@ -1,0 +1,19 @@
+# Domain: AR/VR Robotics
+# AR/VR 로봇 통합 관련 지식
+
+name: "ar_vr_robotics"
+description: "AR/VR과 로봇 시스템 통합"
+keywords:
+  - "mixed reality"
+  - "HoloLens"
+  - "Unity"
+  - "robot visualization"
+  - "digital twin"
+  - "spatial computing"
+  - "MRTK"
+
+# 관련 전문가
+related_experts:
+  - "dongjune_chang"
+
+documents: []

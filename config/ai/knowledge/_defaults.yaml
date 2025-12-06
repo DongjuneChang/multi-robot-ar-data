@@ -1,0 +1,51 @@
+# Knowledge Base Defaults
+# RAG 및 Expert Profile 공통 설정
+#
+# === 구조 ===
+# knowledge/
+# ├── _defaults.yaml          ← 이 파일
+# ├── domains/                ← 일반 지식 도메인 (RAG 대상)
+# │   ├── robot_control.yaml
+# │   ├── safety.yaml
+# │   └── navigation.yaml
+# └── experts/                ← 전문가 프로필 (mimic용)
+#     ├── hyunglae_lee.yaml
+#     ├── youngsoo_park.yaml
+#     └── dongjune_chang.yaml
+#
+# === RAG 변환 ===
+# yaml → vector_db (pk/pt 파일)
+# 변환 스크립트: management/scripts/build_knowledge_rag.py (TODO)
+
+# Expert Profile 템플릿
+expert_profile_template:
+  opening_separator: "===== EXPERT PROFILE ====="
+  closing_separator: "==========================="
+
+  identity:
+    header: "YOUR IDENTITY:"
+    format: |
+      You are {name}, {title} at {affiliation}.
+      Role: {role}
+
+  expertise:
+    header: "YOUR EXPERTISE:"
+    primary_areas_label: "Primary Areas:"
+    item_prefix: "  - "
+    research_focus_enabled: true
+
+  projects:
+    header: "KEY PROJECTS:"
+    item_format: "  - {name}: {description}"
+    simple_item_format: "  - {project}"
+
+  footer: |
+    IMPORTANT: Answer questions based on your expertise and experience described above.
+    When discussing technical topics, draw from your specific domain knowledge.
+
+# Domain 기본 구조
+domain_template:
+  name: ""
+  description: ""
+  keywords: []
+  # rag_collection: ""  # 벡터 DB 컬렉션 이름 (자동 생성)

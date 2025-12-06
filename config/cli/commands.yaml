@@ -1,0 +1,159 @@
+# CLI Commands Configuration
+# Web Panel에서 CLI 명령을 ROS2 서비스로 변환하는 매핑
+#
+# 사용법: <target>.<command> [key=value ...]
+# 예: robot.pattern robot_id=xarm5_Q1 pattern=diamond size=0.15
+
+commands:
+  robot:
+    pattern:
+      description: "Execute pattern test"
+      service: /pattern/start
+      type: std_srvs/srv/Trigger  # TODO: multi_hri_msgs/srv/PatternTest
+      params:
+        robot_id:
+          type: string
+          required: true
+          description: "Robot ID (e.g., xarm5_Q1, lite6_Q4)"
+        pattern:
+          type: string
+          required: true
+          values: [diamond, circle, square, triangle, spiral, hemisphere, figure8, star]
+          description: "Pattern name"
+        size:
+          type: float
+          default: 0.15
+          min: 0.05
+          max: 0.40
+          unit: meters
+          description: "Pattern size in meters"
+        speed:
+          type: float
+          default: 1.0
+          min: 0.5
+          max: 2.0
+          description: "Speed multiplier"
+        iterations:
+          type: int
+          default: 1
+          min: 1
+          max: 10
+          description: "Number of iterations"
+
+    preview:
+      description: "Preview pattern without robot movement"
+      service: /pattern/preview
+      type: std_srvs/srv/Trigger
+      params:
+        robot_id:
+          type: string
+          required: true
+        pattern:
+          type: string
+          required: true
+          values: [diamond, circle, square, triangle, spiral, hemisphere, figure8, star]
+        size:
+          type: float
+          default: 0.15
+
+    stop:
+      description: "Stop current pattern test"
+      service: /pattern/stop
+      type: std_srvs/srv/Trigger
+      params:
+        robot_id:
+          type: string
+          required: false
+          description: "Robot ID (empty = all robots)"
+
+    home:
+      description: "Move robot to home position"
+      service: /robot/home
+      type: std_srvs/srv/Trigger
+      params:
+        robot_id:
+          type: string
+          required: true
+
+    zero:
+      description: "Move robot to zero position"
+      service: /robot/zero
+      type: std_srvs/srv/Trigger
+      params:
+        robot_id:
+          type: string
+          required: true
+
+    joints:
+      description: "Set joint positions directly"
+      service: /robot/set_joints
+      type: std_srvs/srv/Trigger  # TODO: multi_hri_msgs/srv/SetJoints
+      params:
+        robot_id:
+          type: string
+          required: true
+        j1:
+          type: float
+          default: 0.0
+          unit: radians
+        j2:
+          type: float
+          default: 0.0
+          unit: radians
+        j3:
+          type: float
+          default: 0.0
+          unit: radians
+        j4:
+          type: float
+          default: 0.0
+          unit: radians
+        j5:
+          type: float
+          default: 0.0
+          unit: radians
+        j6:
+          type: float
+          default: 0.0
+          unit: radians
+          description: "Joint 6 (for 6-axis robots)"
+        duration:
+          type: float
+          default: 2.0
+          unit: seconds
+
+# Robot aliases for convenience
+# Usage: robot.pattern robot_id=x1 pattern=diamond
+aliases:
+  x1: xarm5_Q1
+  x2: xarm5_Q2
+  l4: lite6_Q4
+  u1: ur5e_ANL
+
+# Available robots (for autocomplete)
+robots:
+  - id: xarm5_Q1
+    type: xarm5
+    location: Q1
+    joints: 5
+  - id: xarm5_Q2
+    type: xarm5
+    location: Q2
+    joints: 5
+  - id: lite6_Q4
+    type: lite6
+    location: Q4
+    joints: 6
+  - id: ur5e_ANL
+    type: ur5e
+    location: ANL
+    joints: 6
+
+# Help text
+help:
+  examples:
+    - "robot.pattern robot_id=xarm5_Q1 pattern=diamond size=0.15"
+    - "robot.pattern robot_id=x1 pattern=circle"
+    - "robot.home robot_id=xarm5_Q1"
+    - "robot.stop"
+    - "robot.preview robot_id=lite6_Q4 pattern=spiral size=0.20"

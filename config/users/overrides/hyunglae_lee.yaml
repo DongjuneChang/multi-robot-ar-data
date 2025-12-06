@@ -1,0 +1,39 @@
+# Hyunglae Lee User Configuration
+# ASU NCHR Lab Professor
+extends: "_defaults.yaml"
+
+user_id: "hyunglae_lee"
+display_name: "Hyunglae Lee"
+role: "professor"
+show_in_html: true
+
+# === 서버 연결 설정 (ASU) ===
+# ros_server: network_config.yaml의 servers.ros2 키 참조
+# 디바이스 정보는 device_config.yaml에서 관리
+server:
+  ros_server: "nchr_xarm5"  # 위치에 따라 변경 가능
+
+# === 연결 모드 ===
+streaming_mode: "zmq_local"
+
+# === RILEY AI 연결 (v2.3) ===
+# server: network_config.servers.ai 키 참조
+riley:
+  server: "ngrok"             # ngrok (HTTP) - GPU 서버 사용
+
+# === 권한 설정 ===
+permissions:
+  can_spawn_robot: true
+  can_delete_robot: true
+  max_robots: 5
+
+  can_spawn_virtual: true
+  can_spawn_guide: true
+
+  can_remote_manipulation: false
+  can_control_all: false
+
+  admin_access: false
+
+# === 접근 가능 QR/로봇 (ASU 로봇) ===
+accessible_qr: ["Q1", "Q2"]  # xarm5, iiwa14

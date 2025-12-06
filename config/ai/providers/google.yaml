@@ -1,0 +1,21 @@
+# Google AI Provider Configuration
+# https://ai.google.dev
+
+type: "cloud_api"
+
+# 모델 설정
+model: "gemini-1.5-flash"
+
+# API 키 환경변수
+api_key_env: "GOOGLE_API_KEY"
+
+# 옵션
+options:
+  max_tokens: 2048
+  temperature: 0.3
+
+# === 사용 가능한 모델들 ===
+# gemini-1.5-flash    - 빠르고 저렴 (권장)
+# gemini-1.5-pro      - 고성능
+# gemini-2.0-flash    - 최신 (2024.12~)
+# gemini-pro          - 이전 버전

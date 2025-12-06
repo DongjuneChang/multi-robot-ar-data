@@ -1,0 +1,178 @@
+# Pattern Registry Configuration
+# Central registry for all available patterns
+# All patterns use unit-based coordinates scaled by defaults
+
+global:
+  reference_frame: WorkFrame
+  default_speed: 1.0
+  default_dwell_time: 2.0
+
+patterns:
+  # ==========================================================================
+  # Waypoint-based patterns (from YAML files)
+  # ==========================================================================
+  diamond:
+    type: waypoints
+    source: file
+    config_file: diamond_pattern.yaml
+    description: "Diamond shape pattern with center + 4 cardinal points"
+    tags: ["basic", "2d", "corners"]
+    adjustable:
+      size: { min: 0.05, max: 0.40, unit: "m" }
+      height: { min: -0.10, max: 0.20, unit: "m" }
+      duration: { min: 0.5, max: 5.0, unit: "s" }
+
+  square:
+    type: waypoints
+    source: file
+    config_file: square_pattern.yaml
+    description: "Square shape pattern with 4 corners"
+    tags: ["basic", "2d", "corners"]
+    adjustable:
+      size: { min: 0.05, max: 0.40, unit: "m" }
+      height: { min: -0.10, max: 0.20, unit: "m" }
+      duration: { min: 0.5, max: 5.0, unit: "s" }
+
+  triangle:
+    type: waypoints
+    source: file
+    config_file: triangle_pattern.yaml
+    description: "Equilateral triangle pattern"
+    tags: ["basic", "2d", "corners"]
+    adjustable:
+      size: { min: 0.05, max: 0.40, unit: "m" }
+      height: { min: -0.10, max: 0.20, unit: "m" }
+      duration: { min: 0.5, max: 5.0, unit: "s" }
+
+  # ==========================================================================
+  # Generated patterns (computed at runtime)
+  # ==========================================================================
+  circle:
+    type: generated
+    source: generator
+    generator: generate_circle_waypoints
+    config_file: circle_pattern.yaml
+    description: "Circular motion pattern"
+    tags: ["basic", "2d", "smooth"]
+    adjustable:
+      radius: { min: 0.05, max: 0.40, unit: "m" }
+      height: { min: -0.10, max: 0.20, unit: "m" }
+      num_points: { min: 8, max: 64, unit: "" }
+      duration_per_point: { min: 0.1, max: 2.0, unit: "s" }
+
+  spiral:
+    type: generated
+    source: generator
+    generator: generate_spiral_waypoints
+    config_file: spiral_pattern.yaml
+    description: "Outward spiral pattern"
+    tags: ["advanced", "2d", "smooth"]
+    adjustable:
+      max_radius: { min: 0.05, max: 0.40, unit: "m" }
+      height: { min: -0.10, max: 0.20, unit: "m" }
+      turns: { min: 1, max: 5, unit: "" }
+      num_points: { min: 16, max: 128, unit: "" }
+      duration_per_point: { min: 0.1, max: 1.0, unit: "s" }
+
+  hemisphere:
+    type: generated
+    source: generator
+    generator: generate_hemisphere_waypoints
+    config_file: hemisphere_pattern.yaml
+    description: "3D hemisphere surface pattern"
+    tags: ["advanced", "3d", "orientation"]
+    adjustable:
+      radius: { min: 0.05, max: 0.40, unit: "m" }
+      num_points: { min: 8, max: 64, unit: "" }
+      duration_per_point: { min: 0.1, max: 2.0, unit: "s" }
+    options:
+      orientation_mode: ["normal", "fixed", "tangent"]
+
+  figure8:
+    type: generated
+    source: generator
+    generator: generate_figure8_waypoints
+    description: "Figure-8 lemniscate pattern"
+    tags: ["advanced", "2d", "smooth", "continuous"]
+    adjustable:
+      scale_x: { min: 0.05, max: 0.30, unit: "m" }
+      scale_y: { min: 0.05, max: 0.25, unit: "m" }
+      height: { min: -0.10, max: 0.20, unit: "m" }
+      num_points: { min: 16, max: 64, unit: "" }
+      duration_per_point: { min: 0.1, max: 1.0, unit: "s" }
+
+  star:
+    type: generated
+    source: generator
+    generator: generate_star_waypoints
+    description: "N-pointed star pattern"
+    tags: ["basic", "2d", "corners", "decorative"]
+    adjustable:
+      outer_radius: { min: 0.05, max: 0.40, unit: "m" }
+      inner_radius: { min: 0.02, max: 0.20, unit: "m" }
+      height: { min: -0.10, max: 0.20, unit: "m" }
+      points: { min: 3, max: 10, unit: "" }
+      duration_per_point: { min: 0.1, max: 2.0, unit: "s" }
+
+# ==========================================================================
+# Pattern Groups
+# ==========================================================================
+pattern_groups:
+  basic_2d:
+    - diamond
+    - square
+    - triangle
+    - circle
+    - star
+
+  advanced:
+    - spiral
+    - hemisphere
+    - figure8
+
+  3d_patterns:
+    - hemisphere
+
+  smooth_motion:
+    - circle
+    - spiral
+    - figure8
+
+  corner_motion:
+    - diamond
+    - square
+    - triangle
+    - star
+
+# ==========================================================================
+# Speed Profiles
+# ==========================================================================
+speed_profiles:
+  slow:
+    speed_multiplier: 0.5
+    dwell_multiplier: 2.0
+
+  normal:
+    speed_multiplier: 1.0
+    dwell_multiplier: 1.0
+
+  fast:
+    speed_multiplier: 2.0
+    dwell_multiplier: 0.5
+
+  test:
+    speed_multiplier: 0.25
+    dwell_multiplier: 3.0
+
+# ==========================================================================
+# Safety Constraints
+# ==========================================================================
+safety:
+  max_velocity: 0.5        # m/s
+  max_acceleration: 1.0    # m/s^2
+  workspace_limits:
+    x: [-0.5, 0.5]         # meters
+    y: [-0.5, 0.5]
+    z: [0.0, 0.6]
+  collision_check: true
+  singularity_check: true

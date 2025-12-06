@@ -1,0 +1,129 @@
+# Network Configuration for Multi-HRI System
+# Unity & Python 공용 - 모든 서버 엔드포인트 정의
+# 작성일: 2025-08-30
+# 수정일: 2025-11-29
+# 작성자: Dongjune Chang
+#
+# 각 서버는 물리적으로 다른 머신에 있을 수 있음:
+#   - HoloLens ↔ ROS2 Server (Linux): TCP 직접 통신
+#   - HoloLens ↔ Web Server (Flask): HTTP/WebSocket
+#   - HoloLens ↔ AI Server (RILEY): ZMQ/HTTP
+
+# === 서버 엔드포인트 ===
+servers:
+  # Web Panel 서버 (Flask)
+  # Flask 자체 설정: web_panel/server_config.yaml
+  web:
+    host: "multi-hri.ngrok.app"
+    port: 5000
+    github_repo: "DongjuneChang/multi-robot-ar-data"
+
+  # AI 서버들 (RILEY + LLM)
+  # Provider 설정: ai/providers/*.yaml
+  # Riley 설정: ai/_defaults.yaml
+  ai:
+    # 로컬 개발 (같은 PC)
+    localhost:
+      type: "zmq"
+      host: "127.0.0.1"
+      zmq_pub_port: 5565      # Unity → Python
+      zmq_sub_port: 5566      # Python → Unity
+      ollama_port: 11434
+
+    # NCHR 연구실 서버
+    nchr:
+      type: "zmq"
+      host: "10.200.84.141"
+      zmq_pub_port: 5565
+      zmq_sub_port: 5566
+      ollama_port: 11434
+
+    # 홈 서버
+    home:
+      type: "zmq"
+      host: "192.168.1.100"
+      zmq_pub_port: 5565
+      zmq_sub_port: 5566
+      ollama_port: 11434
+
+    # ANL 서버
+    anl:
+      type: "zmq"
+      host: "172.14.1.100"
+      zmq_pub_port: 5565
+      zmq_sub_port: 5566
+      ollama_port: 11434
+
+    # ngrok (HTTP 모드)
+    ngrok:
+      type: "http"
+      host: "riley.multi-hri.ngrok.app"
+      port: 5001
+
+  # ROS2 서버들 (Linux Docker)
+  # HoloLens ↔ ROS2 TCP 직접 통신
+  ros2:
+    nchr_kuka:
+      host: "10.200.84.141"
+      port: 10000
+
+    nchr_xarm5:
+      host: "192.168.1.100"
+      port: 10000
+
+    home:
+      host: "192.168.1.100"
+      port: 10000
+
+    chicago_home:
+      host: "192.168.1.4"
+      port: 10000
+
+    anl:
+      host: "fc94:1af4:dc84:76a3:714b:9cfa:85e7:c438"  # Husarnet IPv6
+      port: 10000
+
+    localhost:
+      host: "127.0.0.1"
+      port: 10000
+
+  # Photon Fusion2 (멀티유저 동기화)
+  photon:
+    app_id: "165936a1-4ec1-421d-8930-399921013e1e"
+    region: "us"
+    room_name: "MultiHRI-Room"
+    max_players: 10
+
+# === 데이터 스트리밍 채널 ===
+streaming:
+  update_rate: 10  # Hz
+  data_types:
+    - user_pose
+    - qr_update
+    - robot_spawn
+
+  modes:
+    zmq_local:
+      type: "zmq"
+      host: "localhost"
+      publish_port: 5567
+      subscribe_port: 5568
+
+    zmq_aggregator:
+      type: "zmq"
+      host: "stream.multi-hri.ngrok.app"
+      publish_port: 5567
+      subscribe_port: 5568
+
+    websocket:
+      type: "websocket"
+      endpoint: "wss://stream.multi-hri.ngrok.app"
+
+    disabled:
+      type: "none"
+
+# === 타임아웃 설정 ===
+timeouts:
+  ros_connection: 5000
+  ai_connection: 3000
+  streaming_connection: 2000

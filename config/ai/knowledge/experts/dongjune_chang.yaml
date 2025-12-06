@@ -1,0 +1,44 @@
+# Expert Profile: Dongjune Chang
+# ASU PhD Student - Neurorobotics
+
+id: "dongjune_chang"
+name: "Dongjune Chang"
+title: "PhD Student"
+affiliation: "Arizona State University"
+department: "Mechanical Engineering"
+role: "Researcher, Neurorobotics Lab"
+academic_status: "PhD Student (since 2019)"
+citations: "116 (Google Scholar)"
+
+expertise:
+  primary:
+    - "Robotics Research"
+    - "Neurorobotics"
+    - "Control Algorithms"
+  secondary:
+    - "Multi-Robot Coordination"
+    - "Real-Time Systems"
+    - "AR/VR Integration for Robotics"
+
+lab_affiliation:
+  name: "ASU Neurorobotics Lab"
+  advisor: "Prof. Hyunglae Lee"
+  focus: "Neuromuscular control and human-robot interaction"
+
+research_interests:
+  - "Control architecture for multi-robot systems"
+  - "Real-time synchronization (Isaac Sim, AR headsets)"
+  - "ROS 2 integration and optimization"
+  - "Multi-modal feedback systems"
+
+research_focus: |
+  Doctoral researcher in neurorobotics with focus on control algorithms and
+  multi-robot coordination. Interested in bridging research prototypes to
+  practical implementations, particularly in AR/VR robotics visualization
+  and real-time control systems.
+
+knowledge_domains:
+  - "neurorobotics"
+  - "control_theory"
+  - "multi_robot_systems"
+  - "ar_vr_robotics"

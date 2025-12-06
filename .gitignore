@@ -1,0 +1,38 @@
+# shared_data submodule .gitignore
+
+# Legacy 및 미사용 폴더
+**/__legacy__/
+**/__not__in__use__/
+__not_in_use__/
+__back_up__/
+
+# 문서 (로컬만)
+/docs/
+
+# Python 캐시
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# 로그 파일
+*.log
+logs/
+
+# 환경 파일 (민감 정보)
+.env
+.env.local
+*.env
+
+# IDE 설정
+.vscode/
+.idea/
+
+# OS 생성 파일
+.DS_Store
+Thumbs.db
+
+# 임시 파일
+*.tmp
+*.temp
+*.bak
