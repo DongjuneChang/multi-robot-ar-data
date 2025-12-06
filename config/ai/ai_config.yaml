@@ -16,6 +16,7 @@ riley:
 
 # === 연결 모드 ===
 # 각 사용자 yaml에서 riley.mode로 선택
+# NOTE: 실제 IP는 secrets/network_secrets.yaml 참조
 modes:
   zmq_local:
     type: "zmq"
@@ -28,10 +29,10 @@ modes:
 
   zmq_remote:
     type: "zmq"
-    host: "10.200.84.141"
+    host: "${RILEY_REMOTE_HOST}"  # secrets/network_secrets.yaml
     publish_port: 5565
     subscribe_port: 5566
-    ollama_host: "10.200.84.141"
+    ollama_host: "${RILEY_REMOTE_HOST}"  # secrets/network_secrets.yaml
     ollama_port: 11434
     model: "llama3.2:3b"
 

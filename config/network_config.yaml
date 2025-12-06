@@ -1,8 +1,11 @@
 # Network Configuration for Multi-HRI System
 # Unity & Python 공용 - 모든 서버 엔드포인트 정의
 # 작성일: 2025-08-30
-# 수정일: 2025-11-29
+# 수정일: 2025-12-06
 # 작성자: Dongjune Chang
+#
+# NOTE: 실제 IP 주소는 secrets/network_secrets.yaml에서 관리
+#       secrets/ 폴더는 .gitignore에 의해 Git에서 제외됨
 #
 # 각 서버는 물리적으로 다른 머신에 있을 수 있음:
 #   - HoloLens ↔ ROS2 Server (Linux): TCP 직접 통신
@@ -21,6 +24,7 @@ servers:
   # AI 서버들 (RILEY + LLM)
   # Provider 설정: ai/providers/*.yaml
   # Riley 설정: ai/_defaults.yaml
+  # NOTE: 실제 host IP는 secrets/network_secrets.yaml 참조
   ai:
     # 로컬 개발 (같은 PC)
     localhost:
@@ -33,7 +37,7 @@ servers:
     # NCHR 연구실 서버
     nchr:
       type: "zmq"
-      host: "10.200.84.141"
+      host: "${AI_NCHR_HOST}"  # secrets/network_secrets.yaml
       zmq_pub_port: 5565
       zmq_sub_port: 5566
       ollama_port: 11434
@@ -41,7 +45,7 @@ servers:
     # 홈 서버
     home:
       type: "zmq"
-      host: "192.168.1.100"
+      host: "${AI_HOME_HOST}"  # secrets/network_secrets.yaml
       zmq_pub_port: 5565
       zmq_sub_port: 5566
       ollama_port: 11434
@@ -49,7 +53,7 @@ servers:
     # ANL 서버
     anl:
       type: "zmq"
-      host: "172.14.1.100"
+      host: "${AI_ANL_HOST}"  # secrets/network_secrets.yaml
       zmq_pub_port: 5565
       zmq_sub_port: 5566
       ollama_port: 11434
@@ -62,25 +66,26 @@ servers:
 
   # ROS2 서버들 (Linux Docker)
   # HoloLens ↔ ROS2 TCP 직접 통신
+  # NOTE: 실제 host IP는 secrets/network_secrets.yaml 참조
   ros2:
     nchr_kuka:
-      host: "10.200.84.141"
+      host: "${ROS2_NCHR_KUKA_HOST}"  # secrets/network_secrets.yaml
       port: 10000
 
     nchr_xarm5:
-      host: "192.168.1.100"
+      host: "${ROS2_NCHR_XARM5_HOST}"  # secrets/network_secrets.yaml
       port: 10000
 
     home:
-      host: "192.168.1.100"
+      host: "${ROS2_HOME_HOST}"  # secrets/network_secrets.yaml
       port: 10000
 
     chicago_home:
-      host: "192.168.1.4"
+      host: "${ROS2_CHICAGO_HOME_HOST}"  # secrets/network_secrets.yaml
       port: 10000
 
     anl:
-      host: "fc94:1af4:dc84:76a3:714b:9cfa:85e7:c438"  # Husarnet IPv6
+      host: "${ROS2_ANL_HOST}"  # secrets/network_secrets.yaml (Husarnet IPv6)
       port: 10000
 
     localhost:

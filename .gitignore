@@ -24,6 +24,12 @@ logs/
 .env.local
 *.env
 
+# Secrets (민감 정보 별도 관리)
+config/secrets/
+**/secrets/
+*_secrets.yaml
+*.secrets.yaml
+
 # IDE 설정
 .vscode/
 .idea/

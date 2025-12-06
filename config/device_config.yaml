@@ -1,8 +1,11 @@
 # HoloLens 2 Device Configuration
 # 작성일: 2025-08-30
-# 수정일: 2025-11-29
+# 수정일: 2025-12-06
 # 작성자: Dongjune Chang
-# 용도: HoloLens 2 디바이스 정보 및 Device Portal 접속 정보 관리
+# 용도: HoloLens 2 디바이스 정보 관리
+#
+# NOTE: 민감 정보(IP, 비밀번호)는 secrets/device_secrets.yaml에서 관리
+#       secrets/ 폴더는 .gitignore에 의해 Git에서 제외됨
 
 # Device Portal 공통 설정
 device_portal:
@@ -21,12 +24,12 @@ streaming_presets:
     resolution: "1920x1080"
     framerate: 60
     bitrate: 10000000  # 10 Mbps
-    
+
   medium:
     resolution: "1280x720"
     framerate: 30
     bitrate: 5000000  # 5 Mbps
-    
+
   low:
     resolution: "640x480"
     framerate: 15
@@ -35,55 +38,39 @@ streaming_presets:
 # HoloLens 2 디바이스 목록
 # owner: 디바이스 소유자 (users/overrides/{owner}.yaml과 연결)
 # 서버 설정은 user config의 server.ros_server 참조
-# portal_username/portal_password: Device Portal 인증 (디바이스마다 다름)
 # user_location: on_site | remote (VirtualTwin 표시 정책에 사용)
+#
+# NOTE: device_ip, portal_username, portal_password는
+#       secrets/device_secrets.yaml에서 관리됨
 devices:
   "HOLOLENS-EP9MKK":
     owner: "dongjune_chang"
-    device_ip: "192.168.10.108"
     streaming_preset: "medium"
-    portal_username: "test"
-    portal_password: "1a2s3D4F5G*"
     user_location: "on_site"
 
   "HOLOLENS-G4NTC8":
     owner: "hyunglae_lee"
-    device_ip: "192.168.10.128"
     streaming_preset: "medium"
-    portal_username: "test"
-    portal_password: "1a2s3D4F5G*"
     user_location: "on_site"
 
   "HOLOLENS-OG5M61":
     owner: "youngsoo_park"
-    device_ip: "172.14.1.8"
     streaming_preset: "medium"
-    portal_username: "anl"
-    portal_password: "q1w2e3r4"
     user_location: "on_site"
 
   # Unity Editor / Desktop 테스트용
   "UNITY_EDITOR":
     owner: "developer"
-    device_ip: "127.0.0.1"
     streaming_preset: "medium"
-    portal_username: "test"
-    portal_password: "1a2s3D4F5G*"
     user_location: "on_site"
 
   "MSI":
     owner: "dongjune_chang"
-    device_ip: "127.0.0.1"
     streaming_preset: "high"
-    portal_username: "test"
-    portal_password: "1a2s3D4F5G*"
     user_location: "on_site"
 
   # 기본값 (디바이스명 감지 실패시)
   default:
     owner: "dongjune_chang"
-    device_ip: "127.0.0.1"
     streaming_preset: "medium"
-    portal_username: "test"
-    portal_password: "1a2s3D4F5G*"
     user_location: "on_site"
